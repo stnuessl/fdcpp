@@ -22,32 +22,27 @@
  * SOFTWARE.
  */
 
-#ifndef _FDCPP_EVENTFD_HPP_
-#define _FDCPP_EVENTFD_HPP_
+#ifndef _FDCPP_IFILE_DESCRIPTOR_HPP_
+#define _FDCPP_IFILE_DESCRIPTOR_HPP_
 
-#include <cstdint>
-#include <sys/eventfd.h>
-
-#include <fds/base/iofile_descriptor.hpp>
+#include <fds/base/file_descriptor.hpp>
 
 namespace fd {
 
-class eventfd : public iofile_descriptor {
+class ifile_descriptor : public file_descriptor {
 public:
+    explicit ifile_descriptor(int fd);
+    ifile_descriptor(const ifile_descriptor &other) = delete;
+    ifile_descriptor(ifile_descriptor &&other);
     
-    explicit eventfd(unsigned int initval = 0, int flags = 0);
-    eventfd(const eventfd &other) = delete;
-    eventfd(eventfd &&other);
+    virtual ~ifile_descriptor() = default;
     
-    virtual ~eventfd();
+    ifile_descriptor &operator=(const ifile_descriptor &other) = delete;
+    ifile_descriptor &operator=(ifile_descriptor &&other);
     
-    eventfd &operator=(const eventfd &other) = delete;
-    eventfd &operator=(eventfd &&other);
-    
-    uint64_t read() const;
-    void write(uint64_t val) const;
+    size_t read(char *buffer, size_t size) const;
 };
 
 }
 
-#endif /* _FDCPP_EVENTFD_HPP_ */
+#endif /* _FDCPP_IFILE_DESCRIPTOR_HPP_ */

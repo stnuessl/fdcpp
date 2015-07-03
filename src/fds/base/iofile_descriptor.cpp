@@ -22,32 +22,50 @@
  * SOFTWARE.
  */
 
-#ifndef _FDCPP_EVENTFD_HPP_
-#define _FDCPP_EVENTFD_HPP_
+#include <unistd.h>
 
-#include <cstdint>
-#include <sys/eventfd.h>
+#include <utility>
 
 #include <fds/base/iofile_descriptor.hpp>
+#include <util/throw.hpp>
+
+static const char *tag = "iofile_descriptor";
 
 namespace fd {
 
-class eventfd : public iofile_descriptor {
-public:
-    
-    explicit eventfd(unsigned int initval = 0, int flags = 0);
-    eventfd(const eventfd &other) = delete;
-    eventfd(eventfd &&other);
-    
-    virtual ~eventfd();
-    
-    eventfd &operator=(const eventfd &other) = delete;
-    eventfd &operator=(eventfd &&other);
-    
-    uint64_t read() const;
-    void write(uint64_t val) const;
-};
-
+iofile_descriptor::iofile_descriptor(int fd)
+    : file_descriptor(fd)
+{
 }
 
-#endif /* _FDCPP_EVENTFD_HPP_ */
+iofile_descriptor::iofile_descriptor(iofile_descriptor &&other)
+    : file_descriptor(std::move(other))
+{
+}
+
+iofile_descriptor &iofile_descriptor::operator=(iofile_descriptor &&other)
+{
+    file_descriptor::operator=(std::move(other));
+    
+    return *this;
+}
+
+size_t iofile_descriptor::read(char *buffer, size_t size) const
+{
+    auto n = ::read(_fd, buffer, size);
+    if (n < 0)
+        throw_system_error(tag, "read()");
+    
+    return static_cast<size_t>(n);
+}
+
+size_t iofile_descriptor::write(const char *buffer, size_t size) const
+{
+    auto n = ::write(_fd, buffer, size);
+    if (n < 0)
+        throw_system_error(tag, "write()");
+    
+    return static_cast<size_t>(n);
+}
+
+}

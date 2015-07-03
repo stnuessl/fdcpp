@@ -35,18 +35,18 @@ static const char *tag = "inotify";
 namespace fd {
 
 inotify::inotify(int flags)
-    : file_descriptor(inotify_init1(flags))
+    : ifile_descriptor(inotify_init1(flags))
 {
 }
 
 inotify::inotify(inotify &&other)
-    : file_descriptor(std::move(other))
+    : ifile_descriptor(std::move(other))
 {
 }
 
 inotify &inotify::operator=(inotify &&other)
 {
-    file_descriptor::operator=(std::move(other));
+    ifile_descriptor::operator=(std::move(other));
     
     return *this;
 }
@@ -72,15 +72,5 @@ void inotify::rm_watch(int wd) const
     if (err < 0)
         throw_system_error(tag, "rm_watch()");
 }
-
-size_t inotify::read(char *buffer, size_t size) const
-{
-    auto n = ::read(_fd, buffer, size);
-    if (n < 0)
-        throw_system_error(tag, "read()");
-    
-    return static_cast<size_t>(n);
-}
-
 
 }

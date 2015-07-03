@@ -42,18 +42,18 @@ static fd::timerfd::timerspec to_timerspec(const struct itimerspec *its)
 namespace fd {
 
 timerfd::timerfd(clockid_t clockid, int flags)
-    : file_descriptor(timerfd_create(clockid, flags))
+    : ifile_descriptor(timerfd_create(clockid, flags))
 {
 }
 
 timerfd::timerfd(timerfd &&other)
-    : file_descriptor(std::move(other))
+    : ifile_descriptor(std::move(other))
 {
 }
 
 timerfd &timerfd::operator=(timerfd &&other)
 {
-    file_descriptor::operator=(std::move(other));
+    ifile_descriptor::operator=(std::move(other));
     
     return *this;
 }
@@ -102,18 +102,11 @@ timerfd::timerspec timerfd::settime(const timerfd::timerspec &spec,
 uint64_t timerfd::read() const
 {
     uint64_t val;
-    size_t sum;
-    ssize_t n;
-    
-    sum = 0;
-    
+    ssize_t n = 0;
+
     do {
-        n = ::read(_fd, ((char *) &val) + sum, sizeof(val) - sum);
-        if (n < 0)
-            throw_system_error(tag, "read()");
-        
-        sum += n;
-    } while (sum != sizeof(val));
+        n += ifile_descriptor::read(((char *) &val) + n, sizeof(val) - n);
+    } while (n != sizeof(val));
     
     return val;
 }

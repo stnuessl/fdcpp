@@ -22,87 +22,28 @@
  * SOFTWARE.
  */
 
-#include <unistd.h>
-#include <fcntl.h>
+#ifndef _FD_IOFILE_DESCRIPTOR_HPP_
+#define _FD_IOFILE_DESCRIPTOR_HPP_
 
-#include <type_traits>
-
-#include <fds/file_descriptor.hpp>
-
-#include <util/throw.hpp>
-
-static const char *tag = "file_descriptor";
+#include <fds/base/file_descriptor.hpp>
 
 namespace fd {
 
-file_descriptor::file_descriptor(int fd)
-    : _fd(fd)
-{
-    if (_fd < 0)
-        throw_system_error(tag, "file_descriptor()", EBADF);
-}
-
-
-file_descriptor::file_descriptor(file_descriptor &&other)
-    : _fd(other._fd)
-{
-    other._fd = -1;
-}
-
-file_descriptor::~file_descriptor()
-{
-    if (_fd >= 0)
-        ::close(_fd);
-}
-
-file_descriptor &file_descriptor::operator=(file_descriptor &&other)
-{
-    _fd = other._fd;
-    other._fd = -1;
+class iofile_descriptor : public file_descriptor {
+public:
+    explicit iofile_descriptor(int fd);
+    iofile_descriptor(const iofile_descriptor &other) = delete;
+    iofile_descriptor(iofile_descriptor &&other);
     
-    return *this;
-}
-
-int file_descriptor::fcntl(int cmd)
-{
-    int ret = ::fcntl(_fd, cmd);
-    if (ret < 0)
-        throw_system_error(tag, "fcntl()");
+    virtual ~iofile_descriptor() = default;
     
-    return ret;
-}
-
-int file_descriptor::fcntl(int cmd, int arg)
-{
-    int ret = ::fcntl(_fd, cmd, arg);
-    if (ret < 0)
-        throw_system_error(tag, "fcntl()");
+    iofile_descriptor &operator=(const iofile_descriptor &other) = delete;
+    iofile_descriptor &operator=(iofile_descriptor &&other);
     
-    return ret;
-}
-
-int file_descriptor::fcntl(int cmd, struct flock *arg)
-{
-    int ret = ::fcntl(_fd, cmd, arg);
-    if (ret < 0)
-        throw_system_error(tag, "fcntl()");
-    
-    return ret;
-}
-
-
-int file_descriptor::fd() const
-{
-    return _fd;
-}
-
-
-
-
-
-
-
-
-
+    size_t read(char *buffer, size_t size) const;
+    size_t write(const char *buffer, size_t size) const;
+};
 
 }
+
+#endif /* _FD_IOFILE_DESCRIPTOR_HPP_ */

@@ -35,18 +35,18 @@ static const char *tag = "socket";
 namespace fd {
 
 socket::socket(int domain, int type, int protocol)
-    : file(::socket(domain, type, protocol))
+    : iofile_descriptor(::socket(domain, type, protocol))
 {
 }
 
 socket::socket(int fd)
-    : file(fd)
+    : iofile_descriptor(fd)
 {
 }
 
 
 socket::socket(socket &&other)
-    : file(std::move(other))
+    : iofile_descriptor(std::move(other))
 {
 }
 
@@ -56,7 +56,7 @@ socket::~socket()
 
 socket &socket::operator=(socket&& other)
 {
-    file::operator=(std::move(other));
+    iofile_descriptor::operator=(std::move(other));
     
     return *this;
 }

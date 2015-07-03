@@ -28,7 +28,7 @@
 #include <sys/inotify.h>
 #include <string>
 
-#include <fds/file_descriptor.hpp>
+#include <fds/base/ifile_descriptor.hpp>
 
 #define FOR_EACH_INOTIFY_EVENT(__buffer, __size, __event)                      \
     for ((__event) = (struct inotify_event *)  (__buffer);                     \
@@ -38,7 +38,7 @@
 
 namespace fd {
 
-class inotify : public file_descriptor {
+class inotify : public ifile_descriptor {
 public:
     explicit inotify(int flags = 0);
     inotify(const inotify &other) = delete;
@@ -52,8 +52,6 @@ public:
     int add_watch(const char *path, uint32_t mask) const;
     int add_watch(const std::string &path, uint32_t mask) const; 
     void rm_watch(int wd) const;
-    
-    size_t read(char *buffer, size_t size) const;
 };
 
 }

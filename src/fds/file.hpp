@@ -25,13 +25,18 @@
 #ifndef _FDCPP_FILE_HPP_
 #define _FDCPP_FILE_HPP_
 
-#include <fds/file_descriptor.hpp>
+#include <string>
+
+#include <fds/base/iofile_descriptor.hpp>
 
 namespace fd {
 
-class file : public file_descriptor {
+class file : public iofile_descriptor {
 public:
-    explicit file(int fd);
+    explicit file(const char *path, int flags = 0);
+    explicit file(const char *path, int flags, mode_t mode);
+    explicit file(const std::string &path, int flags = 0);
+    explicit file(const std::string &path, int flags, mode_t mode);
     file(const file &other) = delete;
     file(file &&other);
     
@@ -40,8 +45,16 @@ public:
     file &operator=(const file &other) = delete;
     file &operator=(file &&other);
     
-    size_t read(char *buffer, size_t size) const;
-    size_t write(const char *buffer, size_t size) const;
+    size_t lseek(off_t offset, int whence) const;
+    
+    void fchmod(mode_t mode) const;
+    void fchown(uid_t uid, gid_t gid) const;
+    void fstat(struct stat *st) const;
+    void fsync() const;
+    void ftruncate(size_t size = 0) const;
+    long fpathconf(int name) const;
+    
+    // bool isatty();
 };
 
 }

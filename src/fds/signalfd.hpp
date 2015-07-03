@@ -28,11 +28,11 @@
 #include <signal.h>
 #include <sys/signalfd.h>
 
-#include <fds/file_descriptor.hpp>
+#include <fds/base/ifile_descriptor.hpp>
 
 namespace fd {
 
-class signalfd : public file_descriptor {
+class signalfd : public ifile_descriptor {
 public:
     explicit signalfd(const sigset_t *mask, int fd = -1, int flags = 0);
     signalfd(const signalfd &other) = delete;

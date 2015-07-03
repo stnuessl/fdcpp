@@ -29,12 +29,12 @@
 namespace fd {
 
 eventfd::eventfd(unsigned int initval, int flags)
-    : file(::eventfd(initval, flags))
+    : iofile_descriptor(::eventfd(initval, flags))
 {
 }
 
 eventfd::eventfd(eventfd &&other)
-    : file(std::move(other))
+    : iofile_descriptor(std::move(other))
 {
 
 }
@@ -46,7 +46,7 @@ eventfd::~eventfd()
 
 eventfd &eventfd::operator=(eventfd &&other)
 {
-    file::operator=(std::move(other));
+    iofile_descriptor::operator=(std::move(other));
     
     return *this;
 }
@@ -59,7 +59,7 @@ uint64_t eventfd::read() const
     n = 0;
     
     do {
-        n += file::read(((char *) &val) + n, sizeof(val) - n);
+        n += iofile_descriptor::read(((char *) &val) + n, sizeof(val) - n);
     } while (n != sizeof (val));
     
     return val;
@@ -70,7 +70,7 @@ void eventfd::write(uint64_t val) const
     size_t n = 0;
     
     do {
-        n += file::write(((const char *) &val) + n, sizeof(val) - n);
+        n += iofile_descriptor::write(((char *) &val) + n, sizeof(val) - n);
     } while (n != sizeof(val));
 }
 

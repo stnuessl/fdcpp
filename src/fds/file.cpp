@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+#include <sys/file.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <utility>
@@ -34,13 +36,35 @@ static const char *tag = "file";
 
 namespace fd {
 
-file::file(int fd)
-    : file_descriptor(fd)
+file::file(const char *path, int flags)
+    : iofile_descriptor(open(path, flags))
 {
+
+}
+
+
+file::file(const char *path, int flags, mode_t mode)
+    : iofile_descriptor(open(path, flags, mode))
+{
+
+}
+
+
+file::file(const std::string &path, int flags)
+    : file(path.c_str(), flags)
+{
+
+}
+
+
+file::file(const std::string &path, int flags, mode_t mode)
+    : file(path.c_str(), flags, mode)
+{
+
 }
 
 file::file(file &&other)
-    : file_descriptor(std::move(other))
+    : iofile_descriptor(std::move(other))
 {
 }
 
@@ -50,27 +74,55 @@ file::~file()
 
 file &file::operator=(file &&other)
 {
-    file_descriptor::operator=(std::move(other));
+    iofile_descriptor::operator=(std::move(other));
 
     return *this;
 }
 
-size_t file::read(char *buffer, size_t size) const
+void file::fchmod(mode_t mode) const
 {
-    auto n = ::read(_fd, buffer, size);
+    auto err = ::fchmod(_fd, mode);
+    if (err < 0)
+        throw_system_error(tag, "fchmod()");
+}
+
+void file::fchown(uid_t uid, gid_t gid) const
+{
+    auto err = ::fchown(_fd, uid, gid);
+    if (err < 0)
+        throw_system_error(tag, "fchown()");
+}
+
+
+size_t file::lseek(off_t offset, int whence) const
+{
+    auto n = ::lseek(_fd, offset, whence);
     if (n < 0)
-        throw_system_error(tag, "read()");
+        throw_system_error(tag, "lseek()");
     
     return static_cast<size_t>(n);
 }
 
-size_t file::write(const char *buffer, size_t size) const
+void file::fstat(struct stat *st) const
 {
-    auto n = ::write(_fd, buffer, size);
-    if (n < 0)
-        throw_system_error(tag, "write()");
-
-    return static_cast<size_t>(n);
+    auto err = fstat(_fd, st);
+    if (err < 0)
+        throw_system_error(tag, "fstat()");
 }
+
+void file::fsync() const
+{
+    auto err = ::fsync(_fd);
+    if (err < 0)
+        throw_system_error(tag, "fsync()");
+}
+
+void file::ftruncate(size_t size) const
+{
+    auto err = ::ftruncate(_fd, static_cast<off_t>(size));
+    if (err < 0)
+        throw_system_error(tag, "truncate()");
+}
+
 
 }

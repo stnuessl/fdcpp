@@ -31,11 +31,11 @@
 #include <utility>
 #include <cstdint>
 
-#include <fds/file_descriptor.hpp>
+#include <fds/base/ifile_descriptor.hpp>
 
 namespace fd {
 
-class timerfd : public file_descriptor {
+class timerfd : public ifile_descriptor {
 public:
     typedef std::pair<uint64_t, uint64_t> timerspec;
     

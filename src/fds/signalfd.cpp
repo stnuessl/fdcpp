@@ -34,18 +34,18 @@ static const char *tag = "signalfd";
 namespace fd {
 
 signalfd::signalfd(const sigset_t *mask, int fd, int flags)
-    : file_descriptor(::signalfd(fd, mask, flags))
+    : ifile_descriptor(::signalfd(fd, mask, flags))
 {
 }
 
 signalfd::signalfd(signalfd &&other)
-    : file_descriptor(std::move(other))
+    : ifile_descriptor(std::move(other))
 {
 }
 
 signalfd &signalfd::operator=(signalfd &&other)
 {
-    file_descriptor::operator=(std::move(other));
+    ifile_descriptor::operator=(std::move(other));
     
     return *this;
 }

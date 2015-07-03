@@ -30,11 +30,11 @@
 #include <string>
 #include <cstdint>
 
-#include <fds/file.hpp>
+#include <fds/base/iofile_descriptor.hpp>
 
 namespace fd {
 
-class socket : public file {
+class socket : public iofile_descriptor {
 public:    
     explicit socket(int domain, int type, int protocol = 0);
     socket(const socket &other) = delete;

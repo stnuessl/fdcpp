@@ -22,32 +22,36 @@
  * SOFTWARE.
  */
 
-#ifndef _FDCPP_EVENTFD_HPP_
-#define _FDCPP_EVENTFD_HPP_
+#include <iostream>
+#include <stdexcept>
 
-#include <cstdint>
-#include <sys/eventfd.h>
+#include <string.h>
+#include <unistd.h>
 
-#include <fds/base/iofile_descriptor.hpp>
+#include <easy/unix_socket.hpp>
 
-namespace fd {
-
-class eventfd : public iofile_descriptor {
-public:
+int main(int argc, char *argv[])
+{
+    (void) argc;
+    (void) argv;
     
-    explicit eventfd(unsigned int initval = 0, int flags = 0);
-    eventfd(const eventfd &other) = delete;
-    eventfd(eventfd &&other);
+    char buffer_out[] = "Hello, World!";        
+    char buffer_in[sizeof(buffer_out)];
     
-    virtual ~eventfd();
+    unlink("/tmp/.unix_sock_test");
     
-    eventfd &operator=(const eventfd &other) = delete;
-    eventfd &operator=(eventfd &&other);
+    auto server = fd::easy::unix_socket::server("/tmp/.unix_sock_test");
+    auto client = fd::easy::unix_socket::client("/tmp/.unix_sock_test");
     
-    uint64_t read() const;
-    void write(uint64_t val) const;
-};
-
+    auto conn = server.accept();
+    
+    client.send(buffer_out, sizeof(buffer_out), MSG_NOSIGNAL);
+    conn.recv(buffer_in, sizeof(buffer_in), MSG_NOSIGNAL);
+    
+    if (memcmp(buffer_in, buffer_out, sizeof(buffer_out)) != 0)
+        throw std::logic_error("Invalid result");
+        
+    std::cout << "Ok\n";
+    
+    return 0;
 }
-
-#endif /* _FDCPP_EVENTFD_HPP_ */

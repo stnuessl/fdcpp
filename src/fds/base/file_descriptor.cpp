@@ -22,32 +22,87 @@
  * SOFTWARE.
  */
 
-#ifndef _FDCPP_EVENTFD_HPP_
-#define _FDCPP_EVENTFD_HPP_
+#include <unistd.h>
+#include <fcntl.h>
 
-#include <cstdint>
-#include <sys/eventfd.h>
+#include <type_traits>
 
-#include <fds/base/iofile_descriptor.hpp>
+#include <fds/base/file_descriptor.hpp>
+
+#include <util/throw.hpp>
+
+static const char *tag = "file_descriptor";
 
 namespace fd {
 
-class eventfd : public iofile_descriptor {
-public:
-    
-    explicit eventfd(unsigned int initval = 0, int flags = 0);
-    eventfd(const eventfd &other) = delete;
-    eventfd(eventfd &&other);
-    
-    virtual ~eventfd();
-    
-    eventfd &operator=(const eventfd &other) = delete;
-    eventfd &operator=(eventfd &&other);
-    
-    uint64_t read() const;
-    void write(uint64_t val) const;
-};
-
+file_descriptor::file_descriptor(int fd)
+    : _fd(fd)
+{
+    if (_fd < 0)
+        throw_system_error(tag, "file_descriptor()", EBADF);
 }
 
-#endif /* _FDCPP_EVENTFD_HPP_ */
+
+file_descriptor::file_descriptor(file_descriptor &&other)
+    : _fd(other._fd)
+{
+    other._fd = -1;
+}
+
+file_descriptor::~file_descriptor()
+{
+    if (_fd >= 0)
+        ::close(_fd);
+}
+
+file_descriptor &file_descriptor::operator=(file_descriptor &&other)
+{
+    _fd = other._fd;
+    other._fd = -1;
+    
+    return *this;
+}
+
+int file_descriptor::fcntl(int cmd)
+{
+    int ret = ::fcntl(_fd, cmd);
+    if (ret < 0)
+        throw_system_error(tag, "fcntl()");
+    
+    return ret;
+}
+
+int file_descriptor::fcntl(int cmd, int arg)
+{
+    int ret = ::fcntl(_fd, cmd, arg);
+    if (ret < 0)
+        throw_system_error(tag, "fcntl()");
+    
+    return ret;
+}
+
+int file_descriptor::fcntl(int cmd, struct flock *arg)
+{
+    int ret = ::fcntl(_fd, cmd, arg);
+    if (ret < 0)
+        throw_system_error(tag, "fcntl()");
+    
+    return ret;
+}
+
+
+int file_descriptor::fd() const
+{
+    return _fd;
+}
+
+
+
+
+
+
+
+
+
+
+}

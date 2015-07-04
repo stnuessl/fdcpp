@@ -23,6 +23,7 @@
  */
 
 #include <sys/un.h>
+#include <netinet/in.h>
 
 #include <iostream>
 #include <thread>
@@ -33,13 +34,15 @@
 
 #include <fds/socket.hpp>
 
+#include "util/macros.hpp"
+
 #define SOCK_PATH "/tmp/.fd_socket_test.sock"
-#define MSG_TEXT "Hello, World!"
+#define HELLO_WORLD "Hello, World!"
 
 void server_thread()
 {
     struct sockaddr_un addr;
-    char recv_buf[sizeof(MSG_TEXT)];
+    char recv_buf[sizeof(HELLO_WORLD)];
     
     unlink(SOCK_PATH);
     
@@ -47,15 +50,14 @@ void server_thread()
     std::strncpy(addr.sun_path, SOCK_PATH, sizeof(addr.sun_path));
     
     auto server = fd::socket(AF_UNIX, SOCK_STREAM);
-    server.bind((const struct sockaddr *) &addr, sizeof(addr));
+    server.bind(&addr);
     server.listen();
     
     auto conn = server.accept();
     
     conn.recv(recv_buf, sizeof(recv_buf));
     
-    if (strcmp(recv_buf, MSG_TEXT) != 0)
-        throw std::logic_error("server: Invalid test result");
+    ASSERT(strcmp(recv_buf, HELLO_WORLD) == 0);
     
     conn.send(recv_buf, sizeof(recv_buf));
 }
@@ -63,19 +65,23 @@ void server_thread()
 void client_thread()
 {
     struct sockaddr_un addr;
-    char recv_buf[sizeof(MSG_TEXT)];
+    char recv_buf[sizeof(HELLO_WORLD)];
     
     addr.sun_family = AF_UNIX;
     std::strncpy(addr.sun_path, SOCK_PATH, sizeof(addr.sun_path));
     
     auto client = fd::socket(AF_UNIX, SOCK_STREAM);
+    
+    std::this_thread::yield();
+    std::this_thread::yield();
+    
     client.connect((const struct sockaddr *) &addr, sizeof(addr));
-    client.write(MSG_TEXT, sizeof(MSG_TEXT));
+
+    client.write(HELLO_WORLD, sizeof(HELLO_WORLD));
     
     client.read(recv_buf, sizeof(recv_buf));
     
-    if (strcmp(recv_buf, MSG_TEXT) != 0)
-        throw std::logic_error("client: Invalid test result");
+    ASSERT(strcmp(recv_buf, HELLO_WORLD) == 0);
 }
 
 void test_unix_domain_socket()
@@ -87,12 +93,37 @@ void test_unix_domain_socket()
     t2.join();
 }
 
+void test_udp_socket()
+{
+    char buffer_out[] = "Hello, World!";
+    char buffer_in[sizeof(buffer_out)];
+    size_t size = sizeof(buffer_out);
+    
+    auto client = fd::socket(AF_INET, SOCK_DGRAM);
+    auto server = fd::socket(AF_INET, SOCK_DGRAM);
+    
+    struct sockaddr_in addr;
+    
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(5000);
+    
+    server.bind(&addr);
+    client.sendto(buffer_out, size, &addr);
+    
+    server.recvfrom(buffer_in, size);
+    
+    if (strcmp(buffer_in, buffer_out) != 0)
+       throw std::logic_error("udp: invalid test result");
+}
+
 int main(int argc, char *argv[])
 {
     (void) argc;
     (void) argv;
     
     test_unix_domain_socket();
+    test_udp_socket();
     
     std::cout << "Ok\n";
     

@@ -105,7 +105,7 @@ size_t file::lseek(off_t offset, int whence) const
 
 void file::fstat(struct stat *st) const
 {
-    auto err = fstat(_fd, st);
+    auto err = ::fstat(_fd, st);
     if (err < 0)
         throw_system_error(tag, "fstat()");
 }

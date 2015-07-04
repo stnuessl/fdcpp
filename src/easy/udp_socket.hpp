@@ -25,6 +25,8 @@
 #ifndef _FD_UDP_SOCKET_HPP_
 #define _FD_UDP_SOCKET_HPP_
 
+#include <netinet/in.h>
+
 #include <fds/socket.hpp>
 
 #include <netinet/in.h>
@@ -39,28 +41,16 @@ public:
     udp_socket(const udp_socket &other) = delete;
     udp_socket(udp_socket &&other);
     
-    virtual ~upd_socket() = default;
+    virtual ~udp_socket() = default;
     
     udp_socket &operator=(const udp_socket &other) = delete;
     udp_socket &operator=(udp_socket &&other);
     
-    size_t recvfrom(char *buffer, 
-                    size_t size, 
-                    uint32_t addr, 
-                    int flags = 0) const;
-    size_t recvfrom(char *buffer, 
-                    size_t size,
-                    struct sockaddr_in6 *addr,
-                    int flags = 0) const;
+    static udp_socket client();
     
-    size_t sendto(const char *buffer, 
-                  size_t size, 
-                  uint32_t addr, 
-                  int flags = 0) const;
-    size_t sendto(const char *buffer, 
-                  size_t size, 
-                  struct sockaddr_in6 *addr, 
-                  int flags = 0) const;
+    static udp_socket server(uint32_t addr, uint16_t port);
+    static udp_socket server(const struct sockaddr_in6 *saddr);
+    static udp_socket server(const struct in6_addr *addr, uint16_t port);
 };
 
 }

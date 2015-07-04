@@ -50,33 +50,46 @@ udp_socket &udp_socket::operator=(udp_socket &&other)
     return *this;
 }
 
-size_t udp_socket::recvfrom(char *buffer, 
-                            size_t size, 
-                            uint32_t addr, 
-                            int flags) const
+udp_socket udp_socket::server(uint32_t addr, uint16_t port)
 {
+    struct sockaddr_in saddr;
+    
+    saddr.sin_family = AF_INET;
+    saddr.sin_addr.s_addr = htonl(addr);
+    saddr.sin_port = htons(port);
+    
+    auto socket = udp_socket(AF_INET);
+    socket.bind(&saddr);
+    
+    return socket;
+}
 
+udp_socket udp_socket::server(const struct in6_addr *addr, uint16_t port)
+{
+    struct sockaddr_in6 saddr;
+    
+    saddr.sin6_family = AF_INET6;
+    saddr.sin6_addr = *addr;
+    saddr.sin6_port = htons(port);
+    saddr.sin6_flowinfo = 0;
+    saddr.sin6_scope_id = 0;
+    
+    return server(&saddr);
 }
 
 
-size_t udp_socket::recvfrom(char *buffer, 
-                            size_t size, 
-                            struct in6_addr *addr, 
-                            int flags) const
+udp_socket udp_socket::server(const struct sockaddr_in6 *saddr)
 {
-
+    auto socket = udp_socket(AF_INET6);
+    socket.bind(saddr);
+    
+    return socket;
 }
 
-size_t udp_socket::sendto(const char *buffer, 
-                          size_t size, 
-                          struct in6_addr *addr, 
-                          int flags) const
+udp_socket udp_socket::client()
 {
-
+    return udp_socket();
 }
-
-
-
 
 }
 

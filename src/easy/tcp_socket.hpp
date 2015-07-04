@@ -45,9 +45,11 @@ public:
     tcp_socket &operator=(tcp_socket &&other);
     
     static tcp_socket client(uint32_t addr, uint16_t port);
+    static tcp_socket client(const struct sockaddr_in6 *saddr);
     static tcp_socket client(const struct in6_addr *addr, uint16_t port);
     
     static tcp_socket server(uint32_t addr, uint16_t port, int backlog = 5);
+    static tcp_socket server(const struct sockaddr_in6 *saddr, int backlog = 5);
     static tcp_socket server(const struct in6_addr *addr, 
                              uint16_t port, 
                              int backlog = 5);

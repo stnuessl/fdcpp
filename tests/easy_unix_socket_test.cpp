@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     auto client = fd::easy::unix_socket::client("/tmp/.unix_sock_test");
     
     auto conn = server.accept();
-    
+        
     client.send(buffer_out, sizeof(buffer_out), MSG_NOSIGNAL);
     conn.recv(buffer_in, sizeof(buffer_in), MSG_NOSIGNAL);
     

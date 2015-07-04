@@ -22,43 +22,18 @@
  * SOFTWARE.
  */
 
-#ifndef _FDCPP_FILE_HPP_
-#define _FDCPP_FILE_HPP_
+#ifndef _FDCPP_MACROS_HPP_
+#define _FDCPP_MACROS_HPP_
 
-#include <string>
+#include <stdexcept>
 
-#include <fds/base/iofile_descriptor.hpp>
+#define SYMBOL(x) #x
+#define SYMBOL2(x) SYMBOL(x)
 
-namespace fd {
+#define __LINE_STR__ SYMBOL2(__LINE__)
+#define __FILE_POSITION__ __FILE__ ":" __LINE_STR__
 
-class file : public iofile_descriptor {
-public:
-    explicit file(const char *path, int flags = 0);
-    explicit file(const char *path, int flags, mode_t mode);
-    explicit file(const std::string &path, int flags = 0);
-    explicit file(const std::string &path, int flags, mode_t mode);
-    file(const file &other) = delete;
-    file(file &&other);
-    
-    virtual ~file();
-    
-    file &operator=(const file &other) = delete;
-    file &operator=(file &&other);
-    
-    size_t lseek(off_t offset, int whence) const;
-    
-    void fchmod(mode_t mode) const;
-    void fchown(uid_t uid, gid_t gid) const;
-    void fstat(struct stat *st) const;
-    void fsync() const;
-    void ftruncate(size_t size = 0) const;
-    long fpathconf(int name) const;
-    void syncfs() const;
-    void fdatasync() const;
-    
-    // bool isatty();
-};
+#define ASSERT(x)                                                              \
+    if (!(x)) throw std::logic_error(__FILE_POSITION__)
 
-}
-
-#endif /* _FDCPP_FILE_HPP_ */
+#endif /* _FDCPP_MACROS_HPP_ */

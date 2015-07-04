@@ -29,29 +29,57 @@
 
 #include <easy/tcp_socket.hpp>
 
+#include "util/macros.hpp"
+
+void ipv4()
+{
+    int msg_out = 0xDEADFACE;
+    int msg_in;
+    
+    auto server = fd::easy::tcp_socket::server(INADDR_LOOPBACK, 5000);
+    auto client = fd::easy::tcp_socket::client(INADDR_LOOPBACK, 5000);
+    auto conn = server.accept();
+        
+    client.send((char *) &msg_out, sizeof(msg_out));
+    conn.recv((char *) &msg_in, sizeof(msg_in));
+    
+    ASSERT(msg_in == msg_out);
+}
+
+void ipv6()
+{
+    int msg_out = 0xDEADFACE;
+    int msg_in;
+    
+    struct sockaddr_in6 addr;
+    
+    addr.sin6_family = AF_INET6;
+    addr.sin6_addr = in6addr_any;
+    addr.sin6_port = htons(5001);
+    addr.sin6_flowinfo = 0;
+    addr.sin6_scope_id = 0;
+    
+    auto server = fd::easy::tcp_socket::server(&addr);
+    
+    addr.sin6_addr = in6addr_loopback;
+    
+    auto client = fd::easy::tcp_socket::client(&addr);
+    auto conn = server.accept();
+    
+    client.send((char *) &msg_out, sizeof(msg_out));
+    conn.recv((char *) &msg_in, sizeof(msg_in));
+    
+    ASSERT(msg_in == msg_out);
+}
+
 int main(int argc, char *argv[])
 {
     (void) argc;
     (void) argv;
+    
+    ipv4();
+    ipv6();
 
-    struct in6_addr addr6 = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
-    int msg_out = 0xDEADFACE;
-    int msg_in;
-    int on = 1;
-
-    auto server = fd::easy::tcp_socket::server(&addr6, 5000);
-    server.setsockopt(SOL_SOCKET, SO_REUSEADDR, (char *) &on, sizeof(on));
-    
-    auto client = fd::easy::tcp_socket::client(&addr6, 5000);
-    
-    auto conn = server.accept();
-    
-    client.send((const char *) &msg_out, sizeof(msg_out));
-    conn.recv((char *) &msg_in, sizeof(msg_in));
-    
-    if (msg_out != msg_in)
-        throw std::logic_error("Invalid result");
-    
     std::cout << "Ok\n";
     
     return 0;

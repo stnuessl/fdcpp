@@ -68,12 +68,45 @@ void socket::connect(const sockaddr *saddr, socklen_t len) const
         throw_system_error(tag, "connect()");
 }
 
+void socket::connect(const struct sockaddr_un *saddr) const
+{
+    connect((const struct sockaddr *) saddr, sizeof(*saddr));
+}
+
+void socket::connect(const struct sockaddr_in *saddr) const
+{
+    connect((const struct sockaddr *) saddr, sizeof(*saddr));
+}
+
+void socket::connect(const struct sockaddr_in6 *saddr) const
+{
+    connect((const struct sockaddr *) saddr, sizeof(*saddr));
+}
+
 void socket::bind(const sockaddr *saddr, socklen_t len) const
 {
     auto err = ::bind(_fd, saddr, len);
     if (err < 0)
         throw_system_error(tag, "bind()");
 }
+
+void socket::bind(const struct sockaddr_un *saddr) const
+{
+    bind((const struct sockaddr *) saddr, sizeof(*saddr));
+}
+
+
+void socket::bind(const struct sockaddr_in *saddr) const
+{
+    bind((const struct sockaddr *) saddr, sizeof(*saddr));
+}
+
+
+void socket::bind(const struct sockaddr_in6 *saddr) const
+{
+    bind((const struct sockaddr *) saddr, sizeof(*saddr));
+}
+
 
 void socket::listen(int backlog) const
 {
@@ -169,6 +202,37 @@ size_t socket::sendto(const char *buffer,
     
     return static_cast<size_t>(n);
 }
+
+size_t socket::sendto(const char *buffer, 
+                      size_t size, 
+                      const struct sockaddr_un *saddr, 
+                      int flags) const
+{
+    const struct sockaddr *sockaddr = (const struct sockaddr *) saddr;
+    
+    return sendto(buffer, size, sockaddr, sizeof(*saddr), flags);
+}
+
+size_t socket::sendto(const char *buffer, 
+                      size_t size,
+                      const struct sockaddr_in *saddr,
+                      int flags) const
+{
+    const struct sockaddr *sockaddr = (const struct sockaddr *) saddr;
+    
+    return sendto(buffer, size, sockaddr, sizeof(*saddr), flags);
+}
+
+size_t socket::sendto(const char *buffer, 
+                      size_t size, 
+                      const struct sockaddr_in6 *saddr, 
+                      int flags) const
+{
+    const struct sockaddr *sockaddr = (const struct sockaddr *) saddr;
+    
+    return sendto(buffer, size, sockaddr, sizeof(*saddr), flags);
+}
+
 
 void socket::getsockopt(int level, int name, char *val, socklen_t *len) const
 {

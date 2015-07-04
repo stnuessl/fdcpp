@@ -22,8 +22,7 @@
  * SOFTWARE.
  */
 
-#include <netinet/in.h>
-#include <string.h>
+// #include <string.h>
 
 #include <utility>
 #include <stdexcept>
@@ -62,25 +61,31 @@ tcp_socket tcp_socket::client(uint32_t addr, uint16_t port)
     saddr.sin_port = htons(port);
     
     auto socket = tcp_socket(AF_INET);
-    socket.connect((const struct sockaddr *) &saddr, sizeof(saddr));
+    socket.connect(&saddr);
     
     return socket;
 }
+
+tcp_socket tcp_socket::client(const struct sockaddr_in6 *saddr)
+{
+    auto socket = tcp_socket(AF_INET6);
+    socket.connect(saddr);
+    
+    return socket;
+}
+
 
 tcp_socket tcp_socket::client(const struct in6_addr *addr, uint16_t port)
 {
     struct sockaddr_in6 saddr;
     
-    saddr.sin6_flowinfo = 0;
     saddr.sin6_family = AF_INET6;
-    memmove((void *) &saddr.sin6_addr, (void *) addr, sizeof(saddr.sin6_addr));
+    saddr.sin6_addr = *addr;
     saddr.sin6_port = htons(port);
+    saddr.sin6_flowinfo = 0;
     saddr.sin6_scope_id = 0;
     
-    auto socket = tcp_socket(AF_INET6);
-    socket.connect((const sockaddr *) &saddr, sizeof(saddr));
-    
-    return socket;
+    return client(&saddr);
 }
 
 
@@ -93,11 +98,21 @@ tcp_socket tcp_socket::server(uint32_t addr, uint16_t port, int backlog)
     saddr.sin_port = htons(port);
     
     auto socket = tcp_socket(AF_INET);
-    socket.bind((const struct sockaddr *) &saddr, sizeof(saddr));
+    socket.bind(&saddr);
     socket.listen(backlog);
     
     return socket;
 }
+
+tcp_socket tcp_socket::server(const struct sockaddr_in6 *saddr, int backlog)
+{
+    auto socket = tcp_socket(AF_INET6);
+    socket.bind(saddr);
+    socket.listen(backlog);
+    
+    return socket;
+}
+
     
 tcp_socket tcp_socket::server(const struct in6_addr *addr, 
                               uint16_t port, 
@@ -105,17 +120,13 @@ tcp_socket tcp_socket::server(const struct in6_addr *addr,
 {
     struct sockaddr_in6 saddr;
     
-    saddr.sin6_flowinfo = 0;
     saddr.sin6_family = AF_INET6;
-    memmove((void *) &saddr.sin6_addr, (void *) addr, sizeof(saddr.sin6_addr));
+    saddr.sin6_addr = *addr;
     saddr.sin6_port = htons(port);
+    saddr.sin6_flowinfo = 0;
     saddr.sin6_scope_id = 0;
     
-    auto socket = tcp_socket(AF_INET6);
-    socket.bind((const struct sockaddr *) &saddr, sizeof(saddr));
-    socket.listen(backlog);
-    
-    return socket;
+    return server(&saddr, backlog);
 }
 
 

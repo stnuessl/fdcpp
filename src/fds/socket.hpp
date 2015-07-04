@@ -26,6 +26,8 @@
 #define _FDCPP_SOCKET_HPP_
 
 #include <sys/socket.h>
+#include <sys/un.h>
+#include <netinet/in.h>
 
 #include <string>
 #include <cstdint>
@@ -46,13 +48,21 @@ public:
     socket &operator=(socket &&other);
     
     void connect(const struct sockaddr *saddr, socklen_t len) const;
+    void connect(const struct sockaddr_un *saddr) const;
+    void connect(const struct sockaddr_in *saddr) const;
+    void connect(const struct sockaddr_in6 *saddr) const;
     
     void bind(const struct sockaddr *saddr, socklen_t len) const;
+    void bind(const struct sockaddr_un *saddr) const;
+    void bind(const struct sockaddr_in *saddr) const;
+    void bind(const struct sockaddr_in6 *saddr) const;
     
     void listen(int backlog = 5) const;
     
     socket accept() const;
     socket accept(struct sockaddr *saddr, socklen_t *len) const;
+//     socket accept(struct sockaddr_un *saddr) const;
+//     socket accept()
     
     void shutdown(int mode) const;
     
@@ -72,9 +82,24 @@ public:
                   const struct sockaddr *saddr,
                   socklen_t len,
                   int flags = 0) const;
+    size_t sendto(const char *buffer, 
+                  size_t size, 
+                  const struct sockaddr_un *saddr,
+                  int flags = 0) const;
+    size_t sendto(const char *buffer, 
+                  size_t size, 
+                  const struct sockaddr_in *saddr, 
+                  int flags = 0) const;
+    size_t sendto(const char *buffer, 
+                  size_t size, 
+                  const struct sockaddr_in6 *saddr, 
+                  int flags = 0) const;
     
     void getsockopt(int level, int name, char *val, socklen_t *len) const;
     void setsockopt(int level, int name, const char *val, socklen_t len) const;
+    
+    void getsockname(struct sockaddr *saddr, socklen_t *len) const;
+    void getpeername(struct sockaddr *saddr, socklen_t *len) const;
 private:
     explicit socket(int fd);
 };

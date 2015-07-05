@@ -79,6 +79,15 @@ file &file::operator=(file &&other)
     return *this;
 }
 
+size_t file::lseek(off_t offset, int whence) const
+{
+    auto n = ::lseek(_fd, offset, whence);
+    if (n < 0)
+        throw_system_error(tag, "lseek()");
+    
+    return static_cast<size_t>(n);
+}
+
 void file::fchmod(mode_t mode) const
 {
     auto err = ::fchmod(_fd, mode);
@@ -91,16 +100,6 @@ void file::fchown(uid_t uid, gid_t gid) const
     auto err = ::fchown(_fd, uid, gid);
     if (err < 0)
         throw_system_error(tag, "fchown()");
-}
-
-
-size_t file::lseek(off_t offset, int whence) const
-{
-    auto n = ::lseek(_fd, offset, whence);
-    if (n < 0)
-        throw_system_error(tag, "lseek()");
-    
-    return static_cast<size_t>(n);
 }
 
 void file::fstat(struct stat *st) const
@@ -121,8 +120,26 @@ void file::ftruncate(size_t size) const
 {
     auto err = ::ftruncate(_fd, static_cast<off_t>(size));
     if (err < 0)
-        throw_system_error(tag, "truncate()");
+        throw_system_error(tag, "ftruncate()");
 }
+
+long file::fpathconf(int name) const
+{
+    errno == 0;
+    auto val = ::fpathconf(_fd, name);
+    if (val < 0 && errno)
+        throw_system_error(tag, "fpathconf()");
+    
+    return val;
+}
+
+void file::fdatasync() const
+{
+    auto err = ::fdatasync(_fd);
+    if (err < 0)
+        throw_system_error(tag, "fdatasync()");
+}
+
 
 
 }

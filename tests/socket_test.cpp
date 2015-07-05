@@ -113,8 +113,7 @@ void test_udp_socket()
     
     server.recvfrom(buffer_in, size);
     
-    if (strcmp(buffer_in, buffer_out) != 0)
-       throw std::logic_error("udp: invalid test result");
+    ASSERT(strcmp(buffer_in, buffer_out) == 0);
 }
 
 int main(int argc, char *argv[])

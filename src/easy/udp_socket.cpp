@@ -86,11 +86,6 @@ udp_socket udp_socket::server(const struct sockaddr_in6 *saddr)
     return socket;
 }
 
-udp_socket udp_socket::client()
-{
-    return udp_socket();
-}
-
 }
 
 }

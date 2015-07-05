@@ -53,10 +53,7 @@ public:
     void fsync() const;
     void ftruncate(size_t size = 0) const;
     long fpathconf(int name) const;
-    void syncfs() const;
     void fdatasync() const;
-    
-    // bool isatty();
 };
 
 }

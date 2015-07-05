@@ -61,8 +61,6 @@ public:
     
     socket accept() const;
     socket accept(struct sockaddr *saddr, socklen_t *len) const;
-//     socket accept(struct sockaddr_un *saddr) const;
-//     socket accept()
     
     void shutdown(int mode) const;
     

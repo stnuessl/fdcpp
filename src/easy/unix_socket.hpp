@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef _FD_UNIX_SOCKET_HPP
-#define _FD_UNIX_SOCKET_HPP
+#ifndef _FDCPP_UNIX_SOCKET_HPP
+#define _FDCPP_UNIX_SOCKET_HPP
 
 #include <string>
 
@@ -55,4 +55,4 @@ public:
 
 }
 
-#endif /* _FD_UNIX_SOCKET_HPP */
+#endif /* _FDCPP_UNIX_SOCKET_HPP */

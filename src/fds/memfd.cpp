@@ -15,44 +15,56 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGqEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
 
-#ifndef _FDCPP_UDP_SOCKET_HPP_
-#define _FDCPP_UDP_SOCKET_HPP_
+#include <unistd.h>
 
-#include <netinet/in.h>
+#include <utility>
 
-#include <fds/socket.hpp>
+#include <fds/memfd.hpp>
+#include <util/throw.hpp>
 
-#include <netinet/in.h>
+static const char *tag = "memfd";
 
 namespace fd {
 
-namespace easy {
+memfd::memfd(const char *name, int flags)
+    : iofile_descriptor(memfd_create(name, flags))
+{
+}
 
-class udp_socket : public socket {
-public:
-    explicit udp_socket(int domain = AF_INET);
-    udp_socket(const udp_socket &other) = delete;
-    udp_socket(udp_socket &&other);
-    
-    virtual ~udp_socket() = default;
-    
-    udp_socket &operator=(const udp_socket &other) = delete;
-    udp_socket &operator=(udp_socket &&other);
-
-    static udp_socket server(uint32_t addr, uint16_t port);
-    static udp_socket server(const struct sockaddr_in6 *saddr);
-    static udp_socket server(const struct in6_addr *addr, uint16_t port);
-};
+memfd::memfd(const std::string &name, int flags)
+    : memfd(name.c_str(), flags)
+{
 
 }
 
+memfd::memfd(memfd &&other)
+    : iofile_descriptor(std::move(other))
+{
 }
 
-#endif /* _FDCPP_UDP_SOCKET_HPP_ */
+memfd &memfd::operator=(memfd &&other)
+{
+    iofile_descriptor::operator=(std::move(other));
+    
+    return *this;
+}
+
+void memfd::ftruncate(size_t size) const
+{
+    auto err = ::ftruncate(_fd, static_cast<off_t>(size));
+    if (err < 0)
+        throw_system_error(tag, "ftruncate()");
+}
+
+
+
+
+
+}

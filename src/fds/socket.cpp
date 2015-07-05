@@ -248,4 +248,20 @@ void socket::setsockopt(int level, int name, const char *val, socklen_t len) con
         throw_system_error(tag, "setsockopt()");
 }
 
+void socket::getsockname(struct sockaddr *saddr, socklen_t *len) const
+{
+    auto err = ::getsockname(_fd, saddr, len);
+    if (err < 0)
+        throw_system_error(tag, "getsockname()");
+}
+
+
+void socket::getpeername(struct sockaddr *saddr, socklen_t *len) const
+{
+    auto err = ::getpeername(_fd, saddr, len);
+    if (err < 0)
+        throw_system_error(tag, "getpeername()");
+}
+
+
 }

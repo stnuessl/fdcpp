@@ -22,37 +22,31 @@
  * SOFTWARE.
  */
 
-#ifndef _FDCPP_UDP_SOCKET_HPP_
-#define _FDCPP_UDP_SOCKET_HPP_
+#ifndef _FDCPP_MEMFD_HPP_
+#define _FDCPP_MEMFD_HPP_
 
-#include <netinet/in.h>
+#include <sys/memfd.h>
 
-#include <fds/socket.hpp>
+#include <string>
 
-#include <netinet/in.h>
+#include <fds/base/iofile_descriptor.hpp>
 
 namespace fd {
 
-namespace easy {
-
-class udp_socket : public socket {
-public:
-    explicit udp_socket(int domain = AF_INET);
-    udp_socket(const udp_socket &other) = delete;
-    udp_socket(udp_socket &&other);
+class memfd : public iofile_descriptor {
+    explicit memfd(const char *name, int flags = 0);
+    explicit memfd(const std::string &name, int flags = 0);
+    memfd(const memfd &other) = delete;
+    memfd(memfd &&other);
     
-    virtual ~udp_socket() = default;
+    virtual ~memfd() = default;
     
-    udp_socket &operator=(const udp_socket &other) = delete;
-    udp_socket &operator=(udp_socket &&other);
-
-    static udp_socket server(uint32_t addr, uint16_t port);
-    static udp_socket server(const struct sockaddr_in6 *saddr);
-    static udp_socket server(const struct in6_addr *addr, uint16_t port);
+    memfd &operator=(const memfd &other) = delete;
+    memfd &operator=(memfd &&other);
+    
+    void ftruncate(size_t size = 0) const;
 };
 
 }
 
-}
-
-#endif /* _FDCPP_UDP_SOCKET_HPP_ */
+#endif /* _FDCPP_MEMFD_HPP_ */

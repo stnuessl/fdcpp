@@ -125,7 +125,7 @@ void file::ftruncate(size_t size) const
 
 long file::fpathconf(int name) const
 {
-    errno == 0;
+    errno = 0;
     auto val = ::fpathconf(_fd, name);
     if (val < 0 && errno)
         throw_system_error(tag, "fpathconf()");

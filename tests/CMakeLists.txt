@@ -1,79 +1,47 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0.2)
 
 # project name
 project(tests)
 
 find_package(Threads)
 
-add_executable(eventfd_test
-    eventfd_test.cpp
-    ../src/fds/base/file_descriptor.cpp
-    ../src/fds/base/iofile_descriptor.cpp
-    ../src/fds/file.cpp
-    ../src/fds/eventfd.cpp
-    ../src/util/throw.cpp
+set(CMAKE_LIBRARY_PATH, /usr/local/lib)
+set(LIBS fdcpp)
+set(TARGETS
+    epoll_test
+    eventfd_test
+    socket_test
+    easy_timer_test
+    timer_test
+    signalfd_test
+    easy_tcp_socket_test
+    easy_unix_socket_test
 )
 
-add_executable(socket_test
-    socket_test.cpp
-    ../src/fds/base/file_descriptor.cpp
-    ../src/fds/base/iofile_descriptor.cpp
-    ../src/fds/socket.cpp
-    ../src/util/throw.cpp
-)
+link_directories(${CMAKE_LIBRARY_PATH})
 
-target_link_libraries(socket_test ${CMAKE_THREAD_LIBS_INIT})
+add_executable(epoll_test epoll_test.cpp)
+target_link_libraries(epoll_test ${LIBS})
 
-add_executable(epoll_test
-    epoll_test.cpp
-    ../src/fds/base/file_descriptor.cpp
-    ../src/fds/base/iofile_descriptor.cpp
-    ../src/fds/base/ifile_descriptor.cpp
-    ../src/fds/epoll.cpp
-    ../src/fds/inotify.cpp
-    ../src/fds/timerfd.cpp
-    ../src/util/throw.cpp
-)
+add_executable(eventfd_test eventfd_test.cpp)
+target_link_libraries(eventfd_test ${LIBS})
 
-add_executable(easy_timer_test
-    easy_timer_test.cpp
-    ../src/easy/timer.cpp
-    ../src/fds/base/file_descriptor.cpp
-    ../src/fds/base/ifile_descriptor.cpp
-    ../src/fds/timerfd.cpp
-    ../src/util/throw.cpp
-)
+add_executable(socket_test socket_test.cpp)
+target_link_libraries(socket_test ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
-add_executable(timer_test
-    timer_test.cpp
-    ../src/fds/base/file_descriptor.cpp
-    ../src/fds/base/ifile_descriptor.cpp
-    ../src/fds/timerfd.cpp
-    ../src/util/throw.cpp
-)
+add_executable(easy_timer_test easy_timer_test.cpp)
+target_link_libraries(easy_timer_test ${LIBS})
 
-add_executable(signalfd_test
-    signalfd_test.cpp
-    ../src/fds/signalfd.cpp
-    ../src/fds/base/file_descriptor.cpp
-    ../src/fds/base/ifile_descriptor.cpp
-    ../src/util/throw.cpp
-)
+add_executable(timer_test timer_test.cpp)
+target_link_libraries(timer_test ${LIBS})
 
-add_executable(easy_tcp_socket_test
-    easy_tcp_socket_test.cpp
-    ../src/easy/tcp_socket.cpp
-    ../src/fds/socket.cpp
-    ../src/fds/base/file_descriptor.cpp
-    ../src/fds/base/iofile_descriptor.cpp
-    ../src/util/throw.cpp
-)
+add_executable(signalfd_test signalfd_test.cpp)
+target_link_libraries(signalfd_test ${LIBS})
 
-add_executable(easy_unix_socket_test
-    easy_unix_socket_test.cpp
-    ../src/easy/unix_socket.cpp
-    ../src/fds/socket.cpp
-    ../src/fds/base/file_descriptor.cpp
-    ../src/fds/base/iofile_descriptor.cpp
-    ../src/util/throw.cpp
-)
+add_executable(easy_tcp_socket_test easy_tcp_socket_test.cpp)
+target_link_libraries(easy_tcp_socket_test ${LIBS})
+
+add_executable(easy_unix_socket_test easy_unix_socket_test.cpp)
+target_link_libraries(easy_unix_socket_test ${LIBS})
+
+set_target_properties(${TARGETS} PROPERTIES EXCLUDE_FROM_ALL 1)

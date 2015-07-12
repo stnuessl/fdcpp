@@ -32,7 +32,6 @@
 #include <netinet/in.h>
 
 namespace fd {
-
 namespace easy {
 
 class udp_socket : public socket {
@@ -52,7 +51,6 @@ public:
 };
 
 }
-
 }
 
 #endif /* _FDCPP_UDP_SOCKET_HPP_ */

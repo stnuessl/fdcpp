@@ -28,7 +28,6 @@
 #include <easy/udp_socket.hpp>
 
 namespace fd {
-
 namespace easy {
 
 udp_socket::udp_socket(int domain)
@@ -87,5 +86,4 @@ udp_socket udp_socket::server(const struct sockaddr_in6 *saddr)
 }
 
 }
-
 }

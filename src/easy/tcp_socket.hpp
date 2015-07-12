@@ -30,7 +30,6 @@
 #include <fds/socket.hpp>
 
 namespace fd {
-
 namespace easy {
 
 class tcp_socket : public socket {
@@ -56,7 +55,6 @@ public:
 };
 
 }
-
 }
 
 #endif /* _FD_TCP_SOCKET_HPP_ */

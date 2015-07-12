@@ -32,7 +32,7 @@
 
 #include <unistd.h>
 
-#include <fds/socket.hpp>
+#include <fdcpp/fds/socket.hpp>
 
 #include "util/macros.hpp"
 

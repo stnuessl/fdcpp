@@ -28,7 +28,6 @@
 #include <fds/timerfd.hpp>
 
 namespace fd {
-
 namespace easy {
 
 class timer : public timerfd {
@@ -50,6 +49,7 @@ public:
     timer &operator=(timer &&other);
     
     void settime(const timerspec &ts);
+    timerspec gettime() const;
     
     void start();
     void pause();
@@ -67,7 +67,6 @@ private:
 };
 
 }
-
 }
 
 #endif /* _FD_TIMER_HPP_ */

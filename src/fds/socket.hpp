@@ -61,6 +61,7 @@ public:
     
     socket accept() const;
     socket accept(struct sockaddr *saddr, socklen_t *len) const;
+    socket accept(struct sockaddr_storage *saddr, socklen_t *len) const; 
     
     void shutdown(int mode) const;
     
@@ -72,6 +73,11 @@ public:
                     socklen_t *len,
                     int flags = 0) const;
     size_t recvfrom(char *buffer, size_t size, int flags = 0) const;
+    size_t recvfrom(char *buffer, 
+                    size_t size, 
+                    struct sockaddr_storage *saddr,
+                    socklen_t *len,
+                    int flags = 0) const;
     
     size_t send(const char *buffer, size_t size, int flags = 0) const;
     size_t sendmsg(const struct msghdr *msg, int flags = 0) const;
@@ -94,10 +100,16 @@ public:
                   int flags = 0) const;
     
     void getsockopt(int level, int name, char *val, socklen_t *len) const;
+    int getsockopt(int level, int name) const;
+    
     void setsockopt(int level, int name, const char *val, socklen_t len) const;
+    void setsockopt(int level, int name, int val) const;
     
     void getsockname(struct sockaddr *saddr, socklen_t *len) const;
+    void getsockname(struct sockaddr_storage *saddr, socklen_t *len) const;
+    
     void getpeername(struct sockaddr *saddr, socklen_t *len) const;
+    void getpeername(struct sockaddr_storage *saddr, socklen_t *len) const;
 private:
     explicit socket(int fd);
 };

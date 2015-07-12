@@ -27,7 +27,7 @@
 
 #include <iostream>
 
-#include <fds/signalfd.hpp>
+#include <fdcpp/fds/signalfd.hpp>
 
 int main(int argc, char *argv[])
 {

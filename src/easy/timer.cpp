@@ -72,6 +72,11 @@ void timer::settime(const timerspec &ts)
     _spec.second = ts.second;
 }
 
+timerfd::timerspec timer::gettime() const
+{
+    return timerfd::gettime();
+}
+
 void timer::start()
 {
     if (_state != STARTED) {

@@ -30,7 +30,6 @@
 #include <fds/socket.hpp>
 
 namespace fd {
-
 namespace easy {
 
 class unix_socket : public socket {
@@ -50,9 +49,8 @@ public:
     static unix_socket server(const char *path, int backlog = 5);
     static unix_socket server(const std::string &path, int backlog = 5);
 };
-    
-}
 
+}
 }
 
 #endif /* _FDCPP_UNIX_SOCKET_HPP */

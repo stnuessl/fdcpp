@@ -28,7 +28,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <easy/unix_socket.hpp>
+#include <fdcpp/easy/unix_socket.hpp>
 
 int main(int argc, char *argv[])
 {

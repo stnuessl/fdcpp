@@ -25,7 +25,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <fds/eventfd.hpp>
+#include <fdcpp/fds/eventfd.hpp>
 
 int main(int argc, char *argv[])
 {

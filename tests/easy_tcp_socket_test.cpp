@@ -27,7 +27,7 @@
 
 #include <netinet/in.h>
 
-#include <easy/tcp_socket.hpp>
+#include <fdcpp/easy/tcp_socket.hpp>
 
 #include "util/macros.hpp"
 

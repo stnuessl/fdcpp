@@ -117,7 +117,7 @@ void socket::listen(int backlog) const
 
 socket socket::accept() const
 {
-    return accept(nullptr, nullptr);
+    return accept((struct sockaddr *) nullptr, nullptr);
 }
 
 socket socket::accept(struct sockaddr *saddr, socklen_t *len) const
@@ -127,6 +127,11 @@ socket socket::accept(struct sockaddr *saddr, socklen_t *len) const
         throw_system_error(tag, "accept()");
     
     return socket(fd);
+}
+
+socket socket::accept(struct sockaddr_storage *saddr, socklen_t *len) const
+{
+    return accept((struct sockaddr *) saddr, len);
 }
 
 void socket::shutdown(int mode) const
@@ -169,8 +174,18 @@ size_t socket::recvfrom(char *buffer,
 
 size_t socket::recvfrom(char *buffer, size_t size, int flags) const
 {
-    return recvfrom(buffer, size, nullptr, nullptr, flags);
+    return recvfrom(buffer, size, (struct sockaddr *) nullptr, nullptr, flags);
 }
+
+size_t socket::recvfrom(char *buffer, 
+                        size_t size, 
+                        struct sockaddr_storage *saddr, 
+                        socklen_t *len, 
+                        int flags) const
+{
+    return recvfrom(buffer, size, (struct sockaddr *) saddr, len, flags);
+}
+
 
 size_t socket::send(const char *buffer, size_t size, int flags) const
 {
@@ -241,12 +256,39 @@ void socket::getsockopt(int level, int name, char *val, socklen_t *len) const
         throw_system_error(tag, "getsockopt()");
 }
 
+int socket::getsockopt(int level, int name) const
+{
+    int ret;
+    socklen_t len;
+    
+    len = sizeof(ret);
+    
+    getsockopt(level, name, (char *) &ret, &len);
+    
+    if (len != sizeof(ret)) {
+        std::string msg = "invalid return value size '";
+        msg += std::to_string(len);
+        msg += "'";
+        
+        throw_runtime_error(tag, "getsockopt()", msg.c_str());
+    }
+    
+    return ret;
+}
+
+
 void socket::setsockopt(int level, int name, const char *val, socklen_t len) const
 {
     auto err = ::setsockopt(_fd, level, name, val, len);
     if (err < 0)
         throw_system_error(tag, "setsockopt()");
 }
+
+void socket::setsockopt(int level, int name, int val) const
+{
+    setsockopt(level, name, (char *) &val, sizeof(val));
+}
+
 
 void socket::getsockname(struct sockaddr *saddr, socklen_t *len) const
 {
@@ -255,12 +297,21 @@ void socket::getsockname(struct sockaddr *saddr, socklen_t *len) const
         throw_system_error(tag, "getsockname()");
 }
 
+void socket::getsockname(struct sockaddr_storage *saddr, socklen_t *len) const
+{
+    getsockname((struct sockaddr *) saddr, len);
+}
 
 void socket::getpeername(struct sockaddr *saddr, socklen_t *len) const
 {
     auto err = ::getpeername(_fd, saddr, len);
     if (err < 0)
         throw_system_error(tag, "getpeername()");
+}
+
+void socket::getpeername(struct sockaddr_storage *saddr, socklen_t *len) const
+{
+    getpeername((struct sockaddr *) saddr, len);
 }
 
 

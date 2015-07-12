@@ -6,11 +6,10 @@ project(fdcpp)
 # add_definitions(-D_GNU_SOURCE)
 add_definitions(-D_POSIX_SOURCE)
 add_definitions(-Wall -Wextra)
-add_definitions(-Wpedantic -Weffc++)
+add_definitions(-std=c++11 -Wpedantic -Weffc++)
 add_definitions(-O2 -DNDEBUG)
 #add_definitions(-g3)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 set(TARGET fdcpp)
 set(CMAKE_INSTALL_PREFIX /usr/local)
 set(TARGET_SONAME lib${TARGET}.so)
@@ -69,13 +68,13 @@ add_library(${TARGET} SHARED ${SRC})
 install(FILES
     ${HDR_FD_BASE}
     DESTINATION
-    ${HEADER_INSTALL_DIR}/fd/base/
+    ${HEADER_INSTALL_DIR}/fds/base/
 )
 
 install(FILES
     ${HDR_FD}
     DESTINATION
-    ${HEADER_INSTALL_DIR}/fd/
+    ${HEADER_INSTALL_DIR}/fds/
 )
 
 install(FILES

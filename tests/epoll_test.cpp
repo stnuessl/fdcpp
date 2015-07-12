@@ -27,10 +27,10 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <fds/epoll.hpp>
-#include <fds/eventfd.hpp>
-#include <fds/inotify.hpp>
-#include <fds/timerfd.hpp>
+#include <fdcpp/fds/epoll.hpp>
+#include <fdcpp/fds/eventfd.hpp>
+#include <fdcpp/fds/inotify.hpp>
+#include <fdcpp/fds/timerfd.hpp>
 
 #define MAX_EVENTS 10
 

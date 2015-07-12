@@ -26,7 +26,7 @@
 #include <thread>
 #include <stdexcept>
 
-#include <easy/timer.hpp>
+#include <fdcpp/easy/timer.hpp>
 
 int main(int argc, char *argv[])
 {

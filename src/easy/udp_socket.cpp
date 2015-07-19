@@ -58,26 +58,26 @@ udp_socket udp_socket::server(uint32_t addr, uint16_t port)
     saddr.sin_port = htons(port);
     
     auto socket = udp_socket(AF_INET);
-    socket.bind(&saddr);
+    socket.bind(saddr);
     
     return socket;
 }
 
-udp_socket udp_socket::server(const struct in6_addr *addr, uint16_t port)
+udp_socket udp_socket::server(const struct in6_addr &addr, uint16_t port)
 {
     struct sockaddr_in6 saddr;
     
     saddr.sin6_family = AF_INET6;
-    saddr.sin6_addr = *addr;
+    saddr.sin6_addr = addr;
     saddr.sin6_port = htons(port);
     saddr.sin6_flowinfo = 0;
     saddr.sin6_scope_id = 0;
     
-    return server(&saddr);
+    return server(saddr);
 }
 
 
-udp_socket udp_socket::server(const struct sockaddr_in6 *saddr)
+udp_socket udp_socket::server(const struct sockaddr_in6 &saddr)
 {
     auto socket = udp_socket(AF_INET6);
     socket.bind(saddr);

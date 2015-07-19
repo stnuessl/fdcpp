@@ -61,11 +61,11 @@ void ipv6()
     addr.sin6_flowinfo = 0;
     addr.sin6_scope_id = 0;
     
-    auto server = fd::easy::tcp_socket::server(&addr);
+    auto server = fd::easy::tcp_socket::server(addr);
     
     addr.sin6_addr = in6addr_loopback;
     
-    auto client = fd::easy::tcp_socket::client(&addr);
+    auto client = fd::easy::tcp_socket::client(addr);
     auto conn = server.accept();
     
     client.send((char *) &msg_out, sizeof(msg_out));
@@ -85,7 +85,7 @@ void polymorphism()
     auto server = fd::easy::tcp_socket::server(INADDR_LOOPBACK, 5001);
     auto client = fd::socket(AF_INET, SOCK_STREAM);
     
-    client.connect(&addr);
+    client.connect(addr);
     auto conn = server.accept();
     
     auto vec = std::vector<fd::socket>();

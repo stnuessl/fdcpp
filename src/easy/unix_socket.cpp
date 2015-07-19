@@ -59,7 +59,7 @@ unix_socket unix_socket::client(const char *path)
     strncpy(addr.sun_path, path, sizeof(addr.sun_path));
     
     auto socket = unix_socket();
-    socket.connect(&addr);
+    socket.connect(addr);
     
     return socket;
 }
@@ -78,7 +78,7 @@ unix_socket unix_socket::server(const char *path, int backlog)
     
     auto socket = unix_socket();
     
-    socket.bind(&addr);
+    socket.bind(addr);
     socket.listen(backlog);
     
     return socket;

@@ -42,20 +42,20 @@ public:
     socket(const socket &other) = delete;
     socket(socket &&other);
     
-    virtual ~socket();
+    virtual ~socket() = default;
     
     socket &operator=(const socket &other) = delete;
     socket &operator=(socket &&other);
     
     void connect(const struct sockaddr *saddr, socklen_t len) const;
-    void connect(const struct sockaddr_un *saddr) const;
-    void connect(const struct sockaddr_in *saddr) const;
-    void connect(const struct sockaddr_in6 *saddr) const;
+    void connect(const struct sockaddr_un &saddr) const;
+    void connect(const struct sockaddr_in &saddr) const;
+    void connect(const struct sockaddr_in6 &saddr) const;
     
     void bind(const struct sockaddr *saddr, socklen_t len) const;
-    void bind(const struct sockaddr_un *saddr) const;
-    void bind(const struct sockaddr_in *saddr) const;
-    void bind(const struct sockaddr_in6 *saddr) const;
+    void bind(const struct sockaddr_un &saddr) const;
+    void bind(const struct sockaddr_in &saddr) const;
+    void bind(const struct sockaddr_in6 &saddr) const;
     
     void listen(int backlog = 5) const;
     
@@ -66,7 +66,7 @@ public:
     void shutdown(int mode) const;
     
     size_t recv(char *buffer, size_t size, int flags = 0) const;
-    size_t recvmsg(struct msghdr *msg, int flags = 0) const;
+    size_t recvmsg(struct msghdr &msg, int flags = 0) const;
     size_t recvfrom(char *buffer, 
                     size_t size,
                     struct sockaddr *saddr,
@@ -80,7 +80,7 @@ public:
                     int flags = 0) const;
     
     size_t send(const char *buffer, size_t size, int flags = 0) const;
-    size_t sendmsg(const struct msghdr *msg, int flags = 0) const;
+    size_t sendmsg(const struct msghdr &msg, int flags = 0) const;
     size_t sendto(const char *buffer, 
                   size_t size, 
                   const struct sockaddr *saddr,
@@ -88,15 +88,15 @@ public:
                   int flags = 0) const;
     size_t sendto(const char *buffer, 
                   size_t size, 
-                  const struct sockaddr_un *saddr,
+                  const struct sockaddr_un &saddr,
                   int flags = 0) const;
     size_t sendto(const char *buffer, 
                   size_t size, 
-                  const struct sockaddr_in *saddr, 
+                  const struct sockaddr_in &saddr, 
                   int flags = 0) const;
     size_t sendto(const char *buffer, 
                   size_t size, 
-                  const struct sockaddr_in6 *saddr, 
+                  const struct sockaddr_in6 &saddr, 
                   int flags = 0) const;
     
     void getsockopt(int level, int name, char *val, socklen_t *len) const;

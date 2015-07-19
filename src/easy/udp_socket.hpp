@@ -46,8 +46,8 @@ public:
     udp_socket &operator=(udp_socket &&other);
 
     static udp_socket server(uint32_t addr, uint16_t port);
-    static udp_socket server(const struct sockaddr_in6 *saddr);
-    static udp_socket server(const struct in6_addr *addr, uint16_t port);
+    static udp_socket server(const struct sockaddr_in6 &saddr);
+    static udp_socket server(const struct in6_addr &addr, uint16_t port);
 };
 
 }

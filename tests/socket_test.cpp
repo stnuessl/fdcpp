@@ -22,12 +22,8 @@
  * SOFTWARE.
  */
 
-#include <sys/un.h>
-#include <netinet/in.h>
-
 #include <iostream>
 #include <thread>
-#include <stdexcept>
 #include <cstring>
 
 #include <unistd.h>
@@ -50,7 +46,7 @@ void server_thread()
     std::strncpy(addr.sun_path, SOCK_PATH, sizeof(addr.sun_path));
     
     auto server = fd::socket(AF_UNIX, SOCK_STREAM);
-    server.bind(&addr);
+    server.bind(addr);
     server.listen();
     
     auto conn = server.accept();
@@ -75,7 +71,7 @@ void client_thread()
     std::this_thread::yield();
     std::this_thread::yield();
     
-    client.connect((const struct sockaddr *) &addr, sizeof(addr));
+    client.connect(addr);
 
     client.write(HELLO_WORLD, sizeof(HELLO_WORLD));
     
@@ -108,12 +104,35 @@ void test_udp_socket()
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr.sin_port = htons(5000);
     
-    server.bind(&addr);
-    client.sendto(buffer_out, size, &addr);
+    server.bind(addr);
+    client.sendto(buffer_out, size, addr);
     
     server.recvfrom(buffer_in, size);
     
     ASSERT(strcmp(buffer_in, buffer_out) == 0);
+}
+
+void test_tcp_socket()
+{
+    struct sockaddr_in addr;
+    
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(6000);
+    
+    try {
+        auto socket = fd::socket(AF_INET, SOCK_STREAM);
+        socket.bind(addr);
+        socket.listen();        // = socket.listen(5)
+        
+        while (1) {
+            auto conn = socket.accept();
+            
+            /* handle connection */
+        }
+    } catch (std::system_error &e) {
+        std::cerr << "** ERROR: socket initialization failed - " << e.what();
+    }
 }
 
 int main(int argc, char *argv[])
@@ -123,6 +142,7 @@ int main(int argc, char *argv[])
     
     test_unix_domain_socket();
     test_udp_socket();
+    test_tcp_socket();
     
     std::cout << "Ok\n";
     

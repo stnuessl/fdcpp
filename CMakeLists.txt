@@ -21,6 +21,7 @@ set(SRC
     src/easy/timer.cpp
     src/easy/udp_socket.cpp
     src/easy/unix_socket.cpp
+    src/easy/buffered_socket.cpp
     src/fds/base/file_descriptor.cpp
     src/fds/base/ifile_descriptor.cpp
     src/fds/base/iofile_descriptor.cpp
@@ -57,6 +58,7 @@ set(HDR_EASY
     src/easy/timer.hpp
     src/easy/udp_socket.hpp
     src/easy/unix_socket.hpp
+    src/easy/buffered_socket.hpp
 )
 
 include_directories(

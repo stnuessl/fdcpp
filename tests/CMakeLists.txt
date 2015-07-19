@@ -16,6 +16,7 @@ set(TARGETS
     signalfd_test
     easy_tcp_socket_test
     easy_unix_socket_test
+    easy_buffered_socket_test
 )
 
 link_directories(${CMAKE_LIBRARY_PATH})
@@ -43,6 +44,9 @@ target_link_libraries(easy_tcp_socket_test ${LIBS})
 
 add_executable(easy_unix_socket_test easy_unix_socket_test.cpp)
 target_link_libraries(easy_unix_socket_test ${LIBS})
+
+add_executable(easy_buffered_socket_test easy_buffered_socket_test.cpp)
+target_link_libraries(easy_buffered_socket_test ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
 add_custom_target(tests DEPENDS ${TARGETS})
 set_target_properties(tests ${TARGETS} PROPERTIES EXCLUDE_FROM_ALL 1)

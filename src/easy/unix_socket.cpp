@@ -33,50 +33,34 @@ namespace fd {
 
 namespace easy {
 
-unix_socket::unix_socket()
-    : socket(AF_UNIX, SOCK_STREAM)
-{
+namespace unix_socket {
 
-}
-
-unix_socket::unix_socket(fd::easy::unix_socket &&other)
-    : socket(std::move(other))
-{
-}
-
-unix_socket &unix_socket::operator=(unix_socket &&other)
-{
-    socket::operator=(std::move(other));
-    
-    return *this;
-}
-
-unix_socket unix_socket::client(const char *path)
+socket client(const char *path)
 {
     struct sockaddr_un addr;
     
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, path, sizeof(addr.sun_path));
     
-    auto socket = unix_socket();
+    auto socket = fd::socket(AF_UNIX, SOCK_STREAM);
     socket.connect(addr);
     
     return socket;
 }
 
-unix_socket unix_socket::client(const std::string &path)
+socket client(const std::string &path)
 {
-    return unix_socket::client(path.c_str());
+    return client(path.c_str());
 }
 
-unix_socket unix_socket::server(const char *path, int backlog)
+socket server(const char *path, int backlog)
 {
     struct sockaddr_un addr;
     
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, path, sizeof(addr.sun_path));
     
-    auto socket = unix_socket();
+    auto socket = fd::socket(AF_UNIX, SOCK_STREAM);
     
     socket.bind(addr);
     socket.listen(backlog);
@@ -84,11 +68,11 @@ unix_socket unix_socket::server(const char *path, int backlog)
     return socket;
 }
 
-unix_socket unix_socket::server(const std::string &path, int backlog)
+socket server(const std::string &path, int backlog)
 {
-    return unix_socket::server(path.c_str(), backlog);
+    return server(path.c_str(), backlog);
 }
 
-
+}
 }
 }

@@ -33,23 +33,13 @@
 
 namespace fd {
 namespace easy {
+namespace udp_socket {
 
-class udp_socket : public socket {
-public:
-    explicit udp_socket(int domain = AF_INET);
-    udp_socket(const udp_socket &other) = delete;
-    udp_socket(udp_socket &&other);
-    
-    virtual ~udp_socket() = default;
-    
-    udp_socket &operator=(const udp_socket &other) = delete;
-    udp_socket &operator=(udp_socket &&other);
+socket server(uint32_t addr, uint16_t port);
+socket server(const struct sockaddr_in6 &saddr);
+socket server(const struct in6_addr &addr, uint16_t port);
 
-    static udp_socket server(uint32_t addr, uint16_t port);
-    static udp_socket server(const struct sockaddr_in6 &saddr);
-    static udp_socket server(const struct in6_addr &addr, uint16_t port);
-};
-
+}
 }
 }
 

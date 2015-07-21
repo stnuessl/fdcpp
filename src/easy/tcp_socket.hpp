@@ -31,29 +31,17 @@
 
 namespace fd {
 namespace easy {
+namespace tcp_socket {
 
-class tcp_socket : public socket {
-public:
-    explicit tcp_socket(int domain = AF_INET);
-    tcp_socket(const tcp_socket &other) = delete;
-    tcp_socket(tcp_socket &&other);
-    
-    virtual ~tcp_socket() = default;
-    
-    tcp_socket &operator=(const tcp_socket &other) = delete;
-    tcp_socket &operator=(tcp_socket &&other);
-    
-    static tcp_socket client(uint32_t addr, uint16_t port);
-    static tcp_socket client(const struct sockaddr_in6 &saddr);
-    static tcp_socket client(const struct in6_addr &addr, uint16_t port);
-    
-    static tcp_socket server(uint32_t addr, uint16_t port, int backlog = 5);
-    static tcp_socket server(const struct sockaddr_in6 &saddr, int backlog = 5);
-    static tcp_socket server(const struct in6_addr &addr, 
-                             uint16_t port, 
-                             int backlog = 5);
-};
+socket client(uint32_t addr, uint16_t port);
+socket client(const struct sockaddr_in6 &saddr);
+socket client(const struct in6_addr &addr, uint16_t port);
 
+socket server(uint32_t addr, uint16_t port, int backlog = 5);
+socket server(const struct sockaddr_in6 &saddr, int backlog = 5);
+socket server(const struct in6_addr &addr, uint16_t port, int backlog = 5);
+
+}
 }
 }
 

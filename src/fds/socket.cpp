@@ -50,7 +50,7 @@ socket::socket(socket &&other)
 {
 }
 
-socket &socket::operator=(socket&& other)
+socket &socket::operator=(socket &&other)
 {
     iofile_descriptor::operator=(std::move(other));
     
@@ -244,6 +244,14 @@ size_t socket::sendto(const char *buffer,
     return sendto(buffer, size, sockaddr, sizeof(saddr), flags);
 }
 
+int socket::sockatmark() const
+{
+    int val = ::sockatmark(_fd);
+    if (val < 0)
+        throw_system_error(tag, "sockatmark()");
+    
+    return val;
+}
 
 void socket::getsockopt(int level, int name, char *val, socklen_t *len) const
 {

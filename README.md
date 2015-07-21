@@ -16,14 +16,14 @@ Guess what...
 * C header files leak into your sources via library includes.
 
 ## TCP socket example
-### C Version
+### C version
 
 ```c
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include <stdio.h>              // perror()
+#include <unistd.h>             // close()
+#include <stdlib.h>             // exit(): not really needed though
+#include <sys/socket.h>         // socket(), bind(), listen(), accept()
+#include <netinet/in.h>         // struct sockaddr_in
 
 {
     struct sockaddr_in addr;
@@ -61,6 +61,8 @@ Guess what...
         /* handle connection */
     }
     
+    close(sock);
+    
     exit(EXIT_SUCCESS);
     
 fail:
@@ -69,7 +71,7 @@ fail:
 }
 ```
 
-### C++ fdcpp Version
+### C++ fdcpp version
 
 ```cpp
 #include <iostream>
@@ -93,7 +95,8 @@ fail:
             /* handle connection */
         }
     } catch (std::system_error &e) {
-        std::cerr << "** ERROR: socket initialization failed - " << e.what();
+        std::cerr << "** ERROR: socket initialization failed - " << e.what()
+                  << '\n';
     }
 }
 ```

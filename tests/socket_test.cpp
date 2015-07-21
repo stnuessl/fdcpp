@@ -123,15 +123,16 @@ void test_tcp_socket()
     try {
         auto socket = fd::socket(AF_INET, SOCK_STREAM);
         socket.bind(addr);
-        socket.listen();        // = socket.listen(5)
+        socket.listen();
         
-        while (1) {
-            auto conn = socket.accept();
+        addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        
+        fd::socket(AF_INET, SOCK_STREAM).connect(addr);
+        auto conn = socket.accept();
             
-            /* handle connection */
-        }
     } catch (std::system_error &e) {
-        std::cerr << "** ERROR: socket initialization failed - " << e.what();
+        std::cerr << "** ERROR: socket initialization failed - " << e.what()
+                  << '\n';
     }
 }
 

@@ -29,27 +29,9 @@
 
 namespace fd {
 namespace easy {
+namespace udp_socket {
 
-udp_socket::udp_socket(int domain)
-    : socket(domain, SOCK_DGRAM)
-{
-    if (domain != AF_INET && domain != AF_INET6)
-        throw std::invalid_argument("udp_socket: udp_socket(): invalid domain");
-}
-
-udp_socket::udp_socket(udp_socket &&other)
-    : socket(std::move(other))
-{
-}
-
-udp_socket &udp_socket::operator=(udp_socket &&other)
-{
-    socket::operator=(std::move(other));
-    
-    return *this;
-}
-
-udp_socket udp_socket::server(uint32_t addr, uint16_t port)
+socket server(uint32_t addr, uint16_t port)
 {
     struct sockaddr_in saddr;
     
@@ -57,13 +39,13 @@ udp_socket udp_socket::server(uint32_t addr, uint16_t port)
     saddr.sin_addr.s_addr = htonl(addr);
     saddr.sin_port = htons(port);
     
-    auto socket = udp_socket(AF_INET);
+    auto socket = fd::socket(AF_INET, SOCK_DGRAM);
     socket.bind(saddr);
     
     return socket;
 }
 
-udp_socket udp_socket::server(const struct in6_addr &addr, uint16_t port)
+socket server(const struct in6_addr &addr, uint16_t port)
 {
     struct sockaddr_in6 saddr;
     
@@ -77,13 +59,14 @@ udp_socket udp_socket::server(const struct in6_addr &addr, uint16_t port)
 }
 
 
-udp_socket udp_socket::server(const struct sockaddr_in6 &saddr)
+socket server(const struct sockaddr_in6 &saddr)
 {
-    auto socket = udp_socket(AF_INET6);
+    auto socket = fd::socket(AF_INET6, SOCK_DGRAM);
     socket.bind(saddr);
     
     return socket;
 }
 
+}
 }
 }

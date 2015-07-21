@@ -31,25 +31,15 @@
 
 namespace fd {
 namespace easy {
+namespace unix_socket {
 
-class unix_socket : public socket {
-public:
-    explicit unix_socket();
-    unix_socket(const unix_socket &other) = delete;
-    unix_socket(unix_socket &&other);
+socket client(const char *path);
+socket client(const std::string &path);
     
-    virtual ~unix_socket() = default;
+socket server(const char *path, int backlog = 5);
+socket server(const std::string &path, int backlog = 5);
 
-    unix_socket &operator=(const unix_socket &other) = delete;
-    unix_socket &operator=(unix_socket &&other);
-    
-    static unix_socket client(const char *path);
-    static unix_socket client(const std::string &path);
-    
-    static unix_socket server(const char *path, int backlog = 5);
-    static unix_socket server(const std::string &path, int backlog = 5);
-};
-
+}
 }
 }
 

@@ -31,28 +31,9 @@
 
 namespace fd {
 namespace easy {
+namespace tcp_socket {
 
-tcp_socket::tcp_socket(int domain)
-    : socket(domain, SOCK_STREAM)
-{
-    if (domain != AF_INET && domain != AF_INET6)
-        throw std::invalid_argument("tcp_socket: tcp_socket(): invalid domain");
-}
-
-tcp_socket::tcp_socket(tcp_socket &&other)
-    : socket(std::move(other))
-{
-}
-
-tcp_socket &tcp_socket::operator=(tcp_socket &&other)
-{
-    socket::operator=(std::move(other));
-    
-    return *this;
-}
-
-
-tcp_socket tcp_socket::client(uint32_t addr, uint16_t port)
+socket client(uint32_t addr, uint16_t port)
 {
     struct sockaddr_in saddr;
     
@@ -60,22 +41,22 @@ tcp_socket tcp_socket::client(uint32_t addr, uint16_t port)
     saddr.sin_addr.s_addr = htonl(addr);
     saddr.sin_port = htons(port);
     
-    auto socket = tcp_socket(AF_INET);
+    auto socket = fd::socket(AF_INET, SOCK_STREAM);
     socket.connect(saddr);
     
     return socket;
 }
 
-tcp_socket tcp_socket::client(const struct sockaddr_in6 &saddr)
+socket client(const struct sockaddr_in6 &saddr)
 {
-    auto socket = tcp_socket(AF_INET6);
+    auto socket = fd::socket(AF_INET6, SOCK_STREAM);
     socket.connect(saddr);
     
     return socket;
 }
 
 
-tcp_socket tcp_socket::client(const struct in6_addr &addr, uint16_t port)
+socket client(const struct in6_addr &addr, uint16_t port)
 {
     struct sockaddr_in6 saddr;
     
@@ -89,7 +70,7 @@ tcp_socket tcp_socket::client(const struct in6_addr &addr, uint16_t port)
 }
 
 
-tcp_socket tcp_socket::server(uint32_t addr, uint16_t port, int backlog)
+socket server(uint32_t addr, uint16_t port, int backlog)
 {
     struct sockaddr_in saddr;
     
@@ -97,16 +78,16 @@ tcp_socket tcp_socket::server(uint32_t addr, uint16_t port, int backlog)
     saddr.sin_addr.s_addr = htonl(addr);
     saddr.sin_port = htons(port);
     
-    auto socket = tcp_socket(AF_INET);
+    auto socket = fd::socket(AF_INET, SOCK_STREAM);
     socket.bind(saddr);
     socket.listen(backlog);
     
     return socket;
 }
 
-tcp_socket tcp_socket::server(const struct sockaddr_in6 &saddr, int backlog)
+socket server(const struct sockaddr_in6 &saddr, int backlog)
 {
-    auto socket = tcp_socket(AF_INET6);
+    auto socket = fd::socket(AF_INET6, SOCK_STREAM);
     socket.bind(saddr);
     socket.listen(backlog);
     
@@ -114,9 +95,7 @@ tcp_socket tcp_socket::server(const struct sockaddr_in6 &saddr, int backlog)
 }
 
     
-tcp_socket tcp_socket::server(const struct in6_addr &addr, 
-                              uint16_t port, 
-                              int backlog)
+socket server(const struct in6_addr &addr, uint16_t port, int backlog)
 {
     struct sockaddr_in6 saddr;
     
@@ -129,8 +108,6 @@ tcp_socket tcp_socket::server(const struct in6_addr &addr,
     return server(saddr, backlog);
 }
 
-
-
-
+}
 }
 }

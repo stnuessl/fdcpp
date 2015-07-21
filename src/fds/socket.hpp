@@ -99,6 +99,8 @@ public:
                   const struct sockaddr_in6 &saddr, 
                   int flags = 0) const;
     
+    int sockatmark() const;
+    
     void getsockopt(int level, int name, char *val, socklen_t *len) const;
     int getsockopt(int level, int name) const;
     

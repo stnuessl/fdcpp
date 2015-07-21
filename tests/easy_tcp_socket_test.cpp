@@ -38,7 +38,7 @@ void ipv4()
     int msg_out = 0xDEADFACE;
     int msg_in;
     
-    auto server = fd::easy::tcp_socket::server(INADDR_LOOPBACK, 5000);
+    auto server = fd::easy::tcp_socket::server(INADDR_ANY, 5000);
     auto client = fd::easy::tcp_socket::client(INADDR_LOOPBACK, 5000);
     auto conn = server.accept();
         
@@ -74,39 +74,6 @@ void ipv6()
     ASSERT(msg_in == msg_out);
 }
 
-void polymorphism()
-{
-    struct sockaddr_in addr;
-    
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    addr.sin_port = htons(5001);
-    
-    auto server = fd::easy::tcp_socket::server(INADDR_LOOPBACK, 5001);
-    auto client = fd::socket(AF_INET, SOCK_STREAM);
-    
-    client.connect(addr);
-    auto conn = server.accept();
-    
-    auto vec = std::vector<fd::socket>();
-    
-    vec.push_back(std::move(client));
-    vec.push_back(std::move(conn));
-    
-    int msg = 0xDEADBEEF;
-    
-    for (auto &sock : vec)
-        sock.write((char *) &msg, sizeof(msg));
-    
-    for (auto &sock : vec) {
-        int received;
-        
-        sock.recv((char *) &received, sizeof(received));
-        
-        ASSERT(received == msg);
-    }
-}
-
 int main(int argc, char *argv[])
 {
     (void) argc;
@@ -114,7 +81,6 @@ int main(int argc, char *argv[])
     
     ipv4();
     ipv6();
-    polymorphism();
 
     std::cout << "Ok\n";
     

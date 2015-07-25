@@ -83,21 +83,35 @@ void handle_timeout(const fd::timerfd &timer)
 
 int main(int argc, char *argv[])
 {
+    struct itimerspec its;
+    
     (void) argc;
     (void) argv;
     
-    struct epoll_event events[MAX_EVENTS];
+    its.it_value.tv_sec = 1;
+    its.it_value.tv_nsec = 0;
+    its.it_interval.tv_sec = 0;
+    its.it_interval.tv_nsec = 500 * 1e6;
+    
+    struct epoll_event events[MAX_EVENTS], ev_stdin, ev_inotify, ev_timer;
     
     auto timer = fd::timerfd();
-    timer.settime({1000 * 1e6, 500 * 1e6});
+    timer.settime(its);
     
     auto inotify = fd::inotify();
     inotify.add_watch(argv[0], IN_ACCESS | IN_MODIFY | IN_OPEN);
     
+    ev_stdin.events = EPOLLIN;
+    ev_stdin.data.ptr = (void *) &std::cin;
+    ev_inotify.events = EPOLLIN;
+    ev_inotify.data.ptr = (void *) &inotify;
+    ev_timer.events = EPOLLIN;
+    ev_timer.data.ptr = (void *) &timer;
+    
     auto epoll = fd::epoll();
-    epoll.ctl(EPOLL_CTL_ADD, STDIN_FILENO, (void *) &std::cin);
-    epoll.ctl(EPOLL_CTL_ADD, inotify, (void *) &inotify);
-    epoll.ctl(EPOLL_CTL_ADD, timer, (void *) &timer);
+    epoll.ctl(EPOLL_CTL_ADD, STDIN_FILENO, ev_stdin);
+    epoll.ctl(EPOLL_CTL_ADD, inotify, ev_inotify);
+    epoll.ctl(EPOLL_CTL_ADD, timer, ev_timer);
     
     while (loop) {
         auto nfds = epoll.wait(events, MAX_EVENTS);

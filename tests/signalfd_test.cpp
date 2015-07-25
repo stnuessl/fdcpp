@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     
     kill(getpid(), SIGQUIT);
     
-    fd::signalfd(&mask).read(&info);
+    fd::signalfd(mask).read(&info);
     
     std::cout << "Signal: " << strsignal(info.ssi_signo) << '\n';
 

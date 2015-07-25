@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+#include <unistd.h>
 #include <utility>
 
 #include <arpa/inet.h>
@@ -44,6 +45,13 @@ socket::socket(int fd)
 {
 }
 
+socket::socket(const socket &other)
+    : iofile_descriptor(::dup(other._fd))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "dup()");
+}
+
 
 socket::socket(socket &&other)
     : iofile_descriptor(std::move(other))
@@ -55,6 +63,11 @@ socket &socket::operator=(socket &&other)
     iofile_descriptor::operator=(std::move(other));
     
     return *this;
+}
+
+socket socket::dup() const
+{
+    return socket(*this);
 }
 
 void socket::connect(const sockaddr *saddr, socklen_t len) const

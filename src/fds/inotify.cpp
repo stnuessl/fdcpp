@@ -37,6 +37,15 @@ namespace fd {
 inotify::inotify(int flags)
     : ifile_descriptor(inotify_init1(flags))
 {
+    if (_fd < 0)
+        throw_system_error(tag, "inotify()");
+}
+
+inotify::inotify(const inotify &other)
+    : ifile_descriptor(::dup(other._fd))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "dup()");
 }
 
 inotify::inotify(inotify &&other)
@@ -49,6 +58,11 @@ inotify &inotify::operator=(inotify &&other)
     ifile_descriptor::operator=(std::move(other));
     
     return *this;
+}
+
+inotify inotify::dup() const
+{
+    return inotify(*this);
 }
 
 int inotify::add_watch(const char *path, uint32_t mask) const
@@ -64,7 +78,6 @@ int inotify::add_watch(const std::string &path, uint32_t mask) const
 {
     return add_watch(path.c_str(), mask);
 }
-
 
 void inotify::rm_watch(int wd) const
 {

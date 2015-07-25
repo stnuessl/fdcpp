@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
     (void) argv;
     
     auto efd = fd::eventfd();
+    efd = fd::eventfd();
 
     efd.write(10);
     

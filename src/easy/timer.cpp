@@ -32,49 +32,72 @@ namespace easy {
 
 timer::timer()
     : timerfd(),
-      _spec(0, 0),
-      _remaining(0),
       _state(STOPPED)
 {
+    _spec.it_value.tv_sec = 0;
+    _spec.it_value.tv_nsec = 0;
+    _spec.it_interval.tv_sec = 0;
+    _spec.it_interval.tv_nsec = 0;
+    
+    _remaining.it_value.tv_sec = 0;
+    _remaining.it_value.tv_nsec = 0;
+    _remaining.it_interval.tv_sec = 0;
+    _remaining.it_interval.tv_nsec = 0;
 }
 
 timer::timer(timer &&other)
     : timerfd(std::move(other)),
-      _spec(std::move(other._spec)),
-      _remaining(other._remaining),
       _state(other._state)
 {
+    _spec.it_value.tv_sec = other._spec.it_value.tv_sec;
+    _spec.it_value.tv_nsec = other._spec.it_value.tv_nsec;
+    _spec.it_interval.tv_sec = other._spec.it_interval.tv_sec;
+    _spec.it_interval.tv_nsec = other._spec.it_interval.tv_nsec;
+    
+    _remaining.it_value.tv_sec = other._remaining.it_value.tv_sec;
+    _remaining.it_value.tv_nsec = other._remaining.it_value.tv_nsec;
+    _remaining.it_interval.tv_sec = other._remaining.it_interval.tv_sec;
+    _remaining.it_interval.tv_nsec = other._remaining.it_interval.tv_nsec;
 }
 
-timer::timer(const timerfd::timerspec &ts)
+timer::timer(const struct itimerspec &ts)
     : timerfd(),
-      _spec(ts),
-      _remaining(0),
       _state(STOPPED)
 {
-
+    settime(ts);
 }
-
 
 timer &timer::operator=(timer &&other)
 {
     timerfd::operator=(std::move(other));
-    _spec = std::move(other._spec);
-    _remaining = other._remaining;
+    
+    _spec.it_value.tv_sec = other._spec.it_value.tv_sec;
+    _spec.it_value.tv_nsec = other._spec.it_value.tv_nsec;
+    _spec.it_interval.tv_sec = other._spec.it_interval.tv_sec;
+    _spec.it_interval.tv_nsec = other._spec.it_interval.tv_nsec;
+    
+    _remaining.it_value.tv_sec = other._remaining.it_value.tv_sec;
+    _remaining.it_value.tv_nsec = other._remaining.it_value.tv_nsec;
+    _remaining.it_interval.tv_sec = other._remaining.it_interval.tv_sec;
+    _remaining.it_interval.tv_nsec = other._remaining.it_interval.tv_nsec;
+    
     _state = other._state;
     
     return *this;
 }
 
-void timer::settime(const timerspec &ts)
+void timer::settime(const struct itimerspec &ts)
 {
-    _spec.first = (ts.first) ? ts.first : ts.second;
-    _spec.second = ts.second;
-}
-
-timerfd::timerspec timer::gettime() const
-{
-    return timerfd::gettime();
+    if (ts.it_value.tv_sec || ts.it_value.tv_nsec) {
+       _spec.it_value.tv_sec = ts.it_value.tv_sec;
+       _spec.it_value.tv_nsec = ts.it_value.tv_nsec;
+    } else {
+        _spec.it_value.tv_sec = ts.it_interval.tv_sec;
+        _spec.it_value.tv_nsec = ts.it_interval.tv_nsec;
+    }
+    
+    _spec.it_interval.tv_sec = ts.it_interval.tv_sec;
+    _spec.it_interval.tv_nsec = ts.it_interval.tv_nsec;
 }
 
 void timer::start()
@@ -88,8 +111,15 @@ void timer::start()
 
 void timer::pause()
 {
+    struct itimerspec its;
+    
+    its.it_value.tv_sec = 0;
+    its.it_value.tv_nsec = 0;
+    its.it_interval.tv_sec = 0;
+    its.it_interval.tv_nsec = 0;
+    
     if (_state == STARTED) {
-        _remaining = timerfd::settime({0, 0}).first;
+        timerfd::settime(its, _remaining);
         _state = PAUSED;
     }
 }
@@ -97,15 +127,27 @@ void timer::pause()
 void timer::resume()
 {
     if (_state == PAUSED) {
-        (void) timerfd::settime({_remaining, _spec.second});
+        if (!_remaining.it_value.tv_sec && !_remaining.it_value.tv_nsec) {
+            _remaining.it_value.tv_sec = _remaining.it_interval.tv_sec;
+            _remaining.it_value.tv_nsec = _remaining.it_interval.tv_nsec;
+        }
+
+        timerfd::settime(_remaining);
         _state = STARTED;
     }
 }
 
 void timer::stop()
 {
+    struct itimerspec its;
+    
+    its.it_value.tv_sec = 0;
+    its.it_value.tv_nsec = 0;
+    its.it_interval.tv_sec = 0;
+    its.it_interval.tv_nsec = 0;
+    
     if (_state != STOPPED) {
-        (void) timerfd::settime({0, 0});
+        timerfd::settime(its);
         _state = STOPPED;
     }
 }

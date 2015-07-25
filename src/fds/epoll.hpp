@@ -34,7 +34,6 @@ namespace fd {
 class epoll : public file_descriptor {
 public:
     explicit epoll(int flags = 0);
-    epoll(const epoll &other) = delete;
     epoll(epoll &&other);
     
     virtual ~epoll() = default;
@@ -42,26 +41,18 @@ public:
     epoll &operator=(const epoll &other) = delete;
     epoll &operator=(epoll &&other);
     
-    void ctl(int op, int fd, struct epoll_event *ev) const;
-    void ctl(int op, int fd, void *ptr, uint32_t events = EPOLLIN) const;
-    void ctl(int op, int fd, uint32_t u32, uint32_t = EPOLLIN) const; 
-    void ctl(int op, int fd, uint64_t u64, uint32_t = EPOLLIN) const;
+    epoll dup() const;
     
-    void ctl(int op, const file_descriptor &desc, struct epoll_event *ev) const;
-    void ctl(int op, 
-             const file_descriptor &desc, 
-             void *ptr = nullptr, 
-             uint32_t events = EPOLLIN) const;
-    void ctl(int op, 
-             const file_descriptor &desc,
-             uint32_t u32, 
-             uint32_t events = EPOLLIN) const; 
-    void ctl(int op, 
-             const file_descriptor &desc, 
-             uint64_t u64, 
-             uint32_t events = EPOLLIN) const;
+    void ctl(int op, int fd, struct epoll_event &ev) const;
+    void ctl(int op, int fd) const;
+    void ctl(int op, const file_descriptor &desc, struct epoll_event &ev) const;
+    void ctl(int op, const file_descriptor &desc);
     
     int wait(struct epoll_event *events, int size, int timeout_ms = -1) const;
+private:
+    epoll(const epoll &other);
+    
+    void ctl(int op, int fd, struct epoll_event *ev) const;
 };
 
 }

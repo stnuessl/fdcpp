@@ -34,16 +34,20 @@ namespace fd {
 
 class signalfd : public ifile_descriptor {
 public:
-    explicit signalfd(const sigset_t *mask, int fd = -1, int flags = 0);
-    signalfd(const signalfd &other) = delete;
+    explicit signalfd(const sigset_t &mask, int flags = 0);
     signalfd(signalfd &&other);
     
     virtual ~signalfd() = default;
+    
+    void setmask(const sigset_t &mask) const;
+    signalfd dup() const;
     
     signalfd &operator=(const signalfd &other) = delete;
     signalfd &operator=(signalfd &&other);
     
     void read(struct signalfd_siginfo *info);
+private:
+    signalfd(const signalfd &other);
 };
 
 }

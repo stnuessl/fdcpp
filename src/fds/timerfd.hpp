@@ -37,27 +37,30 @@ namespace fd {
 
 class timerfd : public ifile_descriptor {
 public:
-    typedef std::pair<uint64_t, uint64_t> timerspec;
-    
     explicit timerfd(clockid_t clockid = CLOCK_MONOTONIC, int flags = 0);
-    timerfd(const timerfd &other) = delete;
     timerfd(timerfd &&other);
     
     virtual ~timerfd() = default;
     
+    timerfd dup() const;
+    
     timerfd &operator=(const timerfd &other) = delete;
     timerfd &operator=(timerfd &&other);
     
-    void gettime(struct itimerspec *val) const;
-    timerspec gettime() const;
+    void gettime(struct itimerspec &val) const;
+    
+    void settime(const struct itimerspec &spec, 
+                 struct itimerspec &old, 
+                 int flags = 0) const;
+    void settime(const struct itimerspec &spec, int flags = 0) const;
+
+    uint64_t read() const;
+private:
+    timerfd(const timerfd &other);
     
     void settime(const struct itimerspec *spec, 
-                 struct itimerspec *old = nullptr, 
-                 int flags = 0) const;
-    
-    timerspec settime(const timerspec &spec, int flags = 0) const;
-  
-    uint64_t read() const;
+                 struct itimerspec *old, 
+                 int flags) const;
 };
 
 }

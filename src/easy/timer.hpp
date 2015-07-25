@@ -39,7 +39,7 @@ public:
     };
     
     explicit timer();
-    explicit timer(const timerspec &ts);
+    explicit timer(const struct itimerspec &its);
     timer(const timer &other) = delete;
     timer(timer &&other);
     
@@ -48,8 +48,7 @@ public:
     timer &operator=(const timer &other) = delete;
     timer &operator=(timer &&other);
     
-    void settime(const timerspec &ts);
-    timerspec gettime() const;
+    void settime(const struct itimerspec &its);
     
     void start();
     void pause();
@@ -60,8 +59,8 @@ public:
     
     timer::state state() const;
 private:
-    timerspec _spec;
-    uint64_t _remaining;
+    struct itimerspec _spec;
+    struct itimerspec _remaining;
     
     enum state _state;
 };

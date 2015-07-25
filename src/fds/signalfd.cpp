@@ -33,10 +33,18 @@ static const char *tag = "signalfd";
 
 namespace fd {
 
-signalfd::signalfd(const sigset_t *mask, int fd, int flags)
-    : ifile_descriptor(::signalfd(fd, mask, flags))
+signalfd::signalfd(const sigset_t &mask, int flags)
+    : ifile_descriptor(::signalfd(-1, &mask, flags))
 {
 }
+
+signalfd::signalfd(const signalfd &other)
+    : ifile_descriptor(::dup(other._fd))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "dup()");
+}
+
 
 signalfd::signalfd(signalfd &&other)
     : ifile_descriptor(std::move(other))
@@ -49,6 +57,20 @@ signalfd &signalfd::operator=(signalfd &&other)
     
     return *this;
 }
+
+void signalfd::setmask(const sigset_t &mask) const
+{
+    int err = ::signalfd(_fd, &mask, 0);
+    if (err < 0)
+        throw_system_error(tag, "set()");
+}
+
+
+signalfd signalfd::dup() const
+{
+    return signalfd(*this);
+}
+
 
 void signalfd::read(struct signalfd_siginfo *info)
 {

@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <type_traits>
+#include <utility>
 
 #include <fds/base/file_descriptor.hpp>
 
@@ -38,8 +38,6 @@ namespace fd {
 file_descriptor::file_descriptor(int fd)
     : _fd(fd)
 {
-    if (_fd < 0)
-        throw_system_error(tag, "file_descriptor()", EBADF);
 }
 
 
@@ -57,8 +55,7 @@ file_descriptor::~file_descriptor()
 
 file_descriptor &file_descriptor::operator=(file_descriptor &&other)
 {
-    _fd = other._fd;
-    other._fd = -1;
+    std::swap(_fd, other._fd);
     
     return *this;
 }

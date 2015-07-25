@@ -39,13 +39,14 @@ namespace fd {
 class socket : public iofile_descriptor {
 public:    
     explicit socket(int domain, int type, int protocol = 0);
-    socket(const socket &other) = delete;
     socket(socket &&other);
     
     virtual ~socket() = default;
     
     socket &operator=(const socket &other) = delete;
     socket &operator=(socket &&other);
+    
+    socket dup() const;
     
     void connect(const struct sockaddr *saddr, socklen_t len) const;
     void connect(const struct sockaddr_un &saddr) const;
@@ -114,6 +115,7 @@ public:
     void getpeername(struct sockaddr_storage *saddr, socklen_t *len) const;
 private:
     explicit socket(int fd);
+    socket(const socket &other);
 };
 
 }

@@ -66,15 +66,14 @@ buffered_socket::buffered_socket(buffered_socket &&other)
 buffered_socket &buffered_socket::operator=(buffered_socket &&other)
 {
     _socket = std::move(other._socket);
-    _buffer_in = other._buffer_in;
+    std::swap(_buffer_in, other._buffer_in);
+    std::swap(_buffer_out, other._buffer_out);
+
     _in_rd = other._in_rd,
     _in_size = other._in_size;
     _in_capacity = other._in_capacity;
-    _buffer_out = other._buffer_out;
     _out_size = other._out_size;
     _out_capacity = other._out_capacity;
-    
-    other._buffer_in = nullptr;
     
     return *this;
 }

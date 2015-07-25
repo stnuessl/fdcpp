@@ -22,26 +22,35 @@
  * SOFTWARE.
  */
 
+#include <unistd.h>
+
 #include <utility>
 
 #include <fds/eventfd.hpp>
+#include <util/throw.hpp>
+
+static const char *tag = "eventfd";
 
 namespace fd {
 
 eventfd::eventfd(unsigned int initval, int flags)
     : iofile_descriptor(::eventfd(initval, flags))
 {
+    if (_fd < 0)
+        throw_system_error(tag, "eventfd()");
 }
+
+eventfd::eventfd(const eventfd &other)
+    : iofile_descriptor(::dup(other._fd))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "dup()");
+}
+
 
 eventfd::eventfd(eventfd &&other)
     : iofile_descriptor(std::move(other))
 {
-
-}
-
-eventfd::~eventfd()
-{
-
 }
 
 eventfd &eventfd::operator=(eventfd &&other)
@@ -49,6 +58,11 @@ eventfd &eventfd::operator=(eventfd &&other)
     iofile_descriptor::operator=(std::move(other));
     
     return *this;
+}
+
+eventfd eventfd::dup() const
+{
+    return eventfd(*this);
 }
 
 uint64_t eventfd::read() const

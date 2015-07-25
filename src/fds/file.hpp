@@ -37,10 +37,11 @@ public:
     explicit file(const char *path, int flags, mode_t mode);
     explicit file(const std::string &path, int flags = 0);
     explicit file(const std::string &path, int flags, mode_t mode);
-    file(const file &other) = delete;
     file(file &&other);
     
-    virtual ~file();
+    virtual ~file() = default;
+    
+    file dup() const;
     
     file &operator=(const file &other) = delete;
     file &operator=(file &&other);
@@ -54,6 +55,8 @@ public:
     void ftruncate(size_t size = 0) const;
     long fpathconf(int name) const;
     void fdatasync() const;
+private:
+    file(const file &other);
 };
 
 }

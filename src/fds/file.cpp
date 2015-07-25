@@ -49,6 +49,12 @@ file::file(const char *path, int flags, mode_t mode)
 
 }
 
+file::file(const file &other)
+    : iofile_descriptor(other._fd)
+{
+    if (_fd < 0)
+        throw_system_error(tag, "dup()");
+}
 
 file::file(const std::string &path, int flags)
     : file(path.c_str(), flags)
@@ -68,16 +74,18 @@ file::file(file &&other)
 {
 }
 
-file::~file()
-{
-}
-
 file &file::operator=(file &&other)
 {
     iofile_descriptor::operator=(std::move(other));
 
     return *this;
 }
+
+file file::dup() const
+{
+    return file(*this);
+}
+
 
 size_t file::lseek(off_t offset, int whence) const
 {

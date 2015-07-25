@@ -29,21 +29,18 @@
 
 static const char *tag = "timerfd";
 
-static fd::timerfd::timerspec to_timerspec(const struct itimerspec *its)
-{
-    int ns_per_sec = 1e9;
-    
-    auto a = its->it_value.tv_sec * ns_per_sec + its->it_value.tv_nsec;
-    auto b = its->it_interval.tv_sec * ns_per_sec + its->it_interval.tv_nsec;
-    
-    return fd::timerfd::timerspec(a, b);
-}
-
 namespace fd {
 
 timerfd::timerfd(clockid_t clockid, int flags)
     : ifile_descriptor(timerfd_create(clockid, flags))
 {
+}
+
+timerfd::timerfd(const timerfd &other)
+    : ifile_descriptor(::dup(other._fd))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "dup()");
 }
 
 timerfd::timerfd(timerfd &&other)
@@ -58,20 +55,17 @@ timerfd &timerfd::operator=(timerfd &&other)
     return *this;
 }
 
-void timerfd::gettime(struct itimerspec *val) const
+timerfd timerfd::dup() const
 {
-    auto err = timerfd_gettime(_fd, val);
-    if (err < 0)
-        throw_system_error(tag, "gettime()");
+    return timerfd(*this);
 }
 
-timerfd::timerspec timerfd::gettime() const
+
+void timerfd::gettime(struct itimerspec &val) const
 {
-    struct itimerspec its;
-    
-    gettime(&its);
-    
-    return to_timerspec(&its);
+    auto err = timerfd_gettime(_fd, &val);
+    if (err < 0)
+        throw_system_error(tag, "gettime()");
 }
 
 void timerfd::settime(const struct itimerspec *spec, 
@@ -83,20 +77,16 @@ void timerfd::settime(const struct itimerspec *spec,
         throw_system_error(tag, "settime()");
 }
 
-timerfd::timerspec timerfd::settime(const timerfd::timerspec &spec, 
-                                    int flags) const
+void timerfd::settime(const struct itimerspec &spec, 
+                      struct itimerspec &old, 
+                      int flags) const
 {
-    int ns_per_sec = 1e9;
-    struct itimerspec its, old;
-    
-    its.it_value.tv_sec     = spec.first / ns_per_sec;
-    its.it_value.tv_nsec    = spec.first % ns_per_sec;
-    its.it_interval.tv_sec  = spec.second / ns_per_sec;
-    its.it_interval.tv_nsec = spec.second % ns_per_sec;
-    
-    settime(&its, &old, flags);
-    
-    return to_timerspec(&old);
+    settime(&spec, &old, flags);
+}
+
+void timerfd::settime(const struct itimerspec &spec, int flags) const
+{
+    settime(&spec, nullptr, flags);
 }
 
 uint64_t timerfd::read() const

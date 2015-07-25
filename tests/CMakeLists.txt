@@ -12,7 +12,7 @@ set(TARGETS
     eventfd_test
     socket_test
     easy_timer_test
-    timer_test
+    timerfd_test
     signalfd_test
     easy_tcp_socket_test
     easy_unix_socket_test
@@ -33,8 +33,8 @@ target_link_libraries(socket_test ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
 add_executable(easy_timer_test easy_timer_test.cpp)
 target_link_libraries(easy_timer_test ${LIBS})
 
-add_executable(timer_test timer_test.cpp)
-target_link_libraries(timer_test ${LIBS})
+add_executable(timerfd_test timerfd_test.cpp)
+target_link_libraries(timerfd_test ${LIBS})
 
 add_executable(signalfd_test signalfd_test.cpp)
 target_link_libraries(signalfd_test ${LIBS})

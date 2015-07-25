@@ -41,10 +41,11 @@ namespace fd {
 class inotify : public ifile_descriptor {
 public:
     explicit inotify(int flags = 0);
-    inotify(const inotify &other) = delete;
     inotify(inotify &&other);
     
     virtual ~inotify() = default;
+    
+    inotify dup() const;
     
     inotify &operator=(const inotify &other) = delete;
     inotify &operator=(inotify &&other);
@@ -52,6 +53,8 @@ public:
     int add_watch(const char *path, uint32_t mask) const;
     int add_watch(const std::string &path, uint32_t mask) const; 
     void rm_watch(int wd) const;
+private:
+    inotify(const inotify &other);
 };
 
 }

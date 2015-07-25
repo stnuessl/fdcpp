@@ -38,6 +38,12 @@ epoll::epoll(int flags)
 {
 }
 
+epoll::epoll(const epoll &other)
+    : file_descriptor(::dup(other._fd))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "dup()");
+}
 
 epoll::epoll(epoll &&other)
     : file_descriptor(std::move(other._fd))
@@ -52,6 +58,11 @@ epoll &epoll::operator=(epoll &&other)
     return *this;
 }
 
+epoll epoll::dup() const
+{
+    return epoll(*this);
+}
+
 void epoll::ctl(int op, int fd, struct epoll_event *ev) const
 {
     auto err = epoll_ctl(_fd, op, fd, ev);
@@ -59,67 +70,24 @@ void epoll::ctl(int op, int fd, struct epoll_event *ev) const
         throw_system_error(tag, "ctl()");
 }
 
-
-
-void epoll::ctl(int op, int fd, void *ptr, uint32_t events) const
+void epoll::ctl(int op, int fd, struct epoll_event &ev) const
 {
-    struct epoll_event ev;
-    
-    ev.data.ptr = ptr;
-    ev.events   = events;
-    
     ctl(op, fd, &ev);
 }
 
-void epoll::ctl(int op, int fd, uint32_t u32, uint32_t events) const
+void epoll::ctl(int op, int fd) const
 {
-    struct epoll_event ev;
-    
-    ev.data.u64 = 0;
-    ev.data.u32 = u32;
-    ev.events   = events;
-    
-    ctl(op, fd, &ev);
+    ctl(op, fd, nullptr);
 }
 
-void epoll::ctl(int op, int fd, uint64_t u64, uint32_t events) const
+void epoll::ctl(int op, const file_descriptor &desc, epoll_event &ev) const
 {
-    struct epoll_event ev;
-    
-    ev.data.u64 = u64;
-    ev.events   = events;
-    
-    ctl(op, fd, &ev);
+    ctl(op, desc.fd(), &ev);
 }
 
-void epoll::ctl(int op, const file_descriptor &desc, epoll_event *ev) const
+void epoll::ctl(int op, const file_descriptor &desc)
 {
-    ctl(op, desc.fd(), ev);
-}
-
-
-void epoll::ctl(int op, 
-                const file_descriptor &desc, 
-                void *ptr, 
-                uint32_t events) const
-{
-    ctl(op, desc.fd(), ptr, events);
-}
-
-void epoll::ctl(int op, 
-                const file_descriptor &desc, 
-                uint32_t u32, 
-                uint32_t events) const
-{
-    ctl(op, desc.fd(), u32, events);
-}
-
-void epoll::ctl(int op, 
-                const file_descriptor &desc, 
-                uint64_t u64, 
-                uint32_t events) const
-{
-    ctl(op, desc.fd(), u64, events);
+    ctl(op, desc.fd(), nullptr);
 }
 
 int epoll::wait(epoll_event *events, int size, int timeout) const

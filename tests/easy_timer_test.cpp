@@ -30,12 +30,17 @@
 
 int main(int argc, char *argv[])
 {
+    struct itimerspec its;
+    
     (void) argc;
     (void) argv;
     
-    auto timer = fd::easy::timer();
+    its.it_value.tv_sec = 0;
+    its.it_value.tv_nsec = 0;
+    its.it_interval.tv_sec = 0;
+    its.it_interval.tv_nsec = 100 * 1e6;
     
-    timer.settime({ 0, 100 * 1000 * 1000 });
+    auto timer = fd::easy::timer(its);    
     timer.start();
     
     std::this_thread::sleep_for(std::chrono::seconds(1));

@@ -36,16 +36,19 @@ class eventfd : public iofile_descriptor {
 public:
     
     explicit eventfd(unsigned int initval = 0, int flags = 0);
-    eventfd(const eventfd &other) = delete;
     eventfd(eventfd &&other);
     
-    virtual ~eventfd();
+    virtual ~eventfd() = default;
     
     eventfd &operator=(const eventfd &other) = delete;
     eventfd &operator=(eventfd &&other);
     
+    eventfd dup() const;
+    
     uint64_t read() const;
     void write(uint64_t val) const;
+private:
+    eventfd(const eventfd &other);
 };
 
 }

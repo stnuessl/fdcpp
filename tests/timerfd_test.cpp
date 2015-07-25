@@ -28,14 +28,31 @@
 
 int main(int argc, char *argv[])
 {
+    struct itimerspec its;
+    struct timespec sleep_time;
+    
     (void) argc;
     (void) argv;
     
+    its.it_value.tv_sec = 1;
+    its.it_value.tv_nsec = 0;
+    its.it_interval.tv_sec = 0;
+    its.it_interval.tv_nsec = 0;
+    
+    sleep_time.tv_sec = 0;
+    sleep_time.tv_nsec = 500 * 1e6;
+    
     try {
         auto timer = fd::timerfd();
+        timer.settime(its);
         
-        timer.settime({1, 0});
+        nanosleep(&sleep_time, nullptr);
         
+        timer.gettime(its);
+        
+        auto ns = its.it_value.tv_sec * 1e9 + its.it_value.tv_nsec;
+        
+        std::cout << "Remaining: " << ns / 1000 << " us\n";
         std::cout << "Timeouts: " << timer.read() << "\n";
         std::cout << "Ok\n";
         

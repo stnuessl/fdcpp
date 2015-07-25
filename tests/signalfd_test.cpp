@@ -24,6 +24,7 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <stdexcept>
 
 #include <iostream>
 
@@ -46,11 +47,25 @@ int main(int argc, char *argv[])
     sigprocmask(SIG_BLOCK, &mask, nullptr);
     
     kill(getpid(), SIGQUIT);
+    kill(getpid(), SIGINT);
+    kill(getpid(), SIGTERM);
+    kill(getpid(), SIGHUP);
     
-    fd::signalfd(mask).read(&info);
+    auto sfd = fd::signalfd(mask, SFD_NONBLOCK);
     
-    std::cout << "Signal: " << strsignal(info.ssi_signo) << '\n';
-
+    while (1) {
+        try {
+            sfd.read(&info);
+            
+            std::cout << "Signal: " << strsignal(info.ssi_signo) << '\n';
+        } catch (std::system_error &e) {
+            if (e.code().value() == EAGAIN)
+                break;
+            
+            throw e;
+        }
+    }
+    
     std::cout << "Ok\n";
     
     return 0;

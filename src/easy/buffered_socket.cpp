@@ -37,8 +37,8 @@ namespace fd {
 namespace easy {
 
 buffered_socket::buffered_socket(socket &&socket, 
-                             size_t input_buffer_size, 
-                             size_t output_buffer_size)
+                                 size_t input_buffer_size, 
+                                 size_t output_buffer_size)
     : _socket(std::move(socket)),
       _buffer_in(new char[input_buffer_size + output_buffer_size]),
       _in_rd(0),

@@ -38,10 +38,10 @@ public:
     
     virtual ~epoll() = default;
     
-    epoll &operator=(const epoll &other) = delete;
     epoll &operator=(epoll &&other);
     
     epoll dup() const;
+    void dup2(const epoll &other) const;
     
     void ctl(int op, int fd, struct epoll_event &ev) const;
     void ctl(int op, int fd) const;
@@ -51,6 +51,7 @@ public:
     int wait(struct epoll_event *events, int size, int timeout_ms = -1) const;
 private:
     epoll(const epoll &other);
+    const epoll &operator=(const epoll &other) const;
     
     void ctl(int op, int fd, struct epoll_event *ev) const;
 };

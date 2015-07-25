@@ -42,8 +42,8 @@ public:
     virtual ~file() = default;
     
     file dup() const;
+    void dup2(const file &other) const;
     
-    file &operator=(const file &other) = delete;
     file &operator=(file &&other);
     
     size_t lseek(off_t offset, int whence) const;
@@ -57,6 +57,7 @@ public:
     void fdatasync() const;
 private:
     file(const file &other);
+    const file &operator=(const file &other) const;
 };
 
 }

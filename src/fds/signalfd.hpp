@@ -41,13 +41,14 @@ public:
     
     void setmask(const sigset_t &mask) const;
     signalfd dup() const;
+    void dup2(const signalfd &other) const;
     
-    signalfd &operator=(const signalfd &other) = delete;
     signalfd &operator=(signalfd &&other);
     
-    void read(struct signalfd_siginfo *info);
+    void read(struct signalfd_siginfo *info) const;
 private:
     signalfd(const signalfd &other);
+    const signalfd &operator=(const signalfd &other) const;
 };
 
 }

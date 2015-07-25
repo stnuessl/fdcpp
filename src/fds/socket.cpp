@@ -52,10 +52,18 @@ socket::socket(const socket &other)
         throw_system_error(tag, "dup()");
 }
 
-
 socket::socket(socket &&other)
     : iofile_descriptor(std::move(other))
 {
+}
+
+const socket &socket::operator=(const socket &other) const
+{
+    int err = ::dup2(other._fd, _fd);
+    if (err < 0)
+        throw_system_error(tag, "dup2()");
+    
+    return *this;
 }
 
 socket &socket::operator=(socket &&other)
@@ -68,6 +76,11 @@ socket &socket::operator=(socket &&other)
 socket socket::dup() const
 {
     return socket(*this);
+}
+
+void socket::dup2(const socket &other) const
+{
+    *this = other;
 }
 
 void socket::connect(const sockaddr *saddr, socklen_t len) const

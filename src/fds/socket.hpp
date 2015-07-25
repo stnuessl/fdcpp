@@ -43,10 +43,10 @@ public:
     
     virtual ~socket() = default;
     
-    socket &operator=(const socket &other) = delete;
     socket &operator=(socket &&other);
     
     socket dup() const;
+    void dup2(const socket &other) const;
     
     void connect(const struct sockaddr *saddr, socklen_t len) const;
     void connect(const struct sockaddr_un &saddr) const;
@@ -116,6 +116,8 @@ public:
 private:
     explicit socket(int fd);
     socket(const socket &other);
+    
+    const socket &operator=(const socket &other) const;
 };
 
 }

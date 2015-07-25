@@ -51,6 +51,15 @@ signalfd::signalfd(signalfd &&other)
 {
 }
 
+const signalfd &signalfd::operator=(const signalfd &other) const
+{
+    int err = ::dup2(other._fd, _fd);
+    if (err < 0)
+        throw_system_error(tag, "dup2()");
+    
+    return *this;
+}
+
 signalfd &signalfd::operator=(signalfd &&other)
 {
     ifile_descriptor::operator=(std::move(other));
@@ -71,8 +80,12 @@ signalfd signalfd::dup() const
     return signalfd(*this);
 }
 
+void signalfd::dup2(const signalfd &other) const
+{
+    *this = other;
+}
 
-void signalfd::read(struct signalfd_siginfo *info)
+void signalfd::read(struct signalfd_siginfo *info) const
 {
     size_t sum;
     ssize_t n;

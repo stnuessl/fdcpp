@@ -46,8 +46,8 @@ public:
     virtual ~inotify() = default;
     
     inotify dup() const;
+    void dup2(const inotify &other) const;
     
-    inotify &operator=(const inotify &other) = delete;
     inotify &operator=(inotify &&other);
     
     int add_watch(const char *path, uint32_t mask) const;
@@ -55,6 +55,7 @@ public:
     void rm_watch(int wd) const;
 private:
     inotify(const inotify &other);
+    const inotify &operator=(const inotify &other) const;
 };
 
 }

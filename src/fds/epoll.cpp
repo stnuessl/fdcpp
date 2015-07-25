@@ -51,6 +51,15 @@ epoll::epoll(epoll &&other)
     other._fd = -1;
 }
 
+const epoll &epoll::operator=(const epoll &other) const
+{
+    int err = ::dup2(other._fd, _fd);
+    if (err < 0)
+        throw_system_error(tag, "dup2()");
+    
+    return *this;
+}
+
 epoll &epoll::operator=(epoll &&other)
 {
     file_descriptor::operator=(std::move(other));
@@ -61,6 +70,11 @@ epoll &epoll::operator=(epoll &&other)
 epoll epoll::dup() const
 {
     return epoll(*this);
+}
+
+void epoll::dup2(const epoll &other) const
+{
+    *this = other;
 }
 
 void epoll::ctl(int op, int fd, struct epoll_event *ev) const

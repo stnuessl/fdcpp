@@ -35,8 +35,8 @@ namespace easy {
 class buffered_socket {
 public:
     explicit buffered_socket(socket &&socket, 
-                           size_t input_buffer_size = 4096, 
-                           size_t output_buffer_size = 4096);
+                             size_t input_buffer_size = 4096, 
+                             size_t output_buffer_size = 4096);
     buffered_socket(const buffered_socket &other) = delete;
     buffered_socket(buffered_socket &&other);
     ~buffered_socket();

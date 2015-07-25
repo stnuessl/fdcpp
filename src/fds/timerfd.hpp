@@ -43,8 +43,8 @@ public:
     virtual ~timerfd() = default;
     
     timerfd dup() const;
+    void dup2(const timerfd &other) const;
     
-    timerfd &operator=(const timerfd &other) = delete;
     timerfd &operator=(timerfd &&other);
     
     void gettime(struct itimerspec &val) const;
@@ -57,6 +57,8 @@ public:
     uint64_t read() const;
 private:
     timerfd(const timerfd &other);
+    
+    const timerfd &operator=(const timerfd &other) const;
     
     void settime(const struct itimerspec *spec, 
                  struct itimerspec *old, 

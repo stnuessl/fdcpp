@@ -23,48 +23,40 @@
  */
 
 #include <unistd.h>
+#include <string.h>
 
 #include <iostream>
+#include <string>
 #include <stdexcept>
+#include <unordered_map>
 
 #include <fdcpp/fds/epoll.hpp>
 #include <fdcpp/fds/eventfd.hpp>
 #include <fdcpp/fds/inotify.hpp>
 #include <fdcpp/fds/timerfd.hpp>
+#include <fdcpp/fds/signalfd.hpp>
+#include <fdcpp/easy/unix_socket.hpp>
 
 #define MAX_EVENTS 10
 
 bool loop = true;
 
-void handle_stdin()
-{
-    std::string str;
-    
-    std::cout << "Stdin event:\n";
-    
-    if (std::getline(std::cin, str)) {
-        if (str.empty())
-            return;
-        
-        if (str == "exit" || str == "quit")
-            loop = false;
-        else
-            std::cout << str << '\n';
-    }
-}
-
-void handle_inotify_event(const fd::inotify &inotify)
+void handle_inotify_event(const fd::inotify &inotify, 
+                          std::unordered_map<int, std::string> &map)
 {
     struct inotify_event *event;
     char buffer[4096];
     
-    std::cout << "Inotify event:\n";
+    std::cout << "**INOTIFY: ";
     
-    auto n = inotify.read(buffer, 4096);
+    auto n = inotify.read(buffer, sizeof(buffer));
     
     FOR_EACH_INOTIFY_EVENT(buffer, n, event) {
         if (event->len > 0)
             std::cout << event->name << " ";
+        else
+            std::cout << map[event->wd] << " ";
+        
         if (event->mask & IN_ACCESS)
             std::cout << "IN_ACCESS ";
         if (event->mask & IN_MODIFY)
@@ -78,55 +70,120 @@ void handle_inotify_event(const fd::inotify &inotify)
 
 void handle_timeout(const fd::timerfd &timer)
 {
-    std::cout << "Timeouts since last read: " << timer.read() << '\n';
+    (void) timer.read();
+    
+    std::cout << "**TIMERFD: timeout\n";
+}
+
+void handle_signal(const fd::signalfd &sfd)
+{
+    struct signalfd_siginfo info;
+    
+    sfd.read(&info);
+    
+    std::cout << "**SIGNALFD: received " << strsignal(info.ssi_signo) << '\n';
+    
+    if (info.ssi_signo == SIGTERM || info.ssi_signo == SIGINT)
+        loop = false;
+}
+
+void handle_socket(const fd::socket &sock)
+{
+    char buf[128];
+    
+    std::cout << "**UNIX_CONNECTION: received '";
+    
+    while (1) {
+        auto n = sock.recv(buf, sizeof(buf), MSG_NOSIGNAL);
+        if (n == 0)
+            break;
+            
+        std::cout << std::string(buf, n);
+    }
+    
+    std::cout << "'\n";
 }
 
 int main(int argc, char *argv[])
 {
     struct itimerspec its;
+    sigset_t mask;
+    std::unordered_map<int, std::string> inotify_watch_map;
+    struct epoll_event events[MAX_EVENTS], ev;
     
-    (void) argc;
-    (void) argv;
+    /* setup inotify */
     
+    auto inotify = fd::inotify();
+    
+    for (int i = 0; i < argc; ++i) {
+        int wd = inotify.add_watch(argv[i], IN_OPEN | IN_MODIFY | IN_ACCESS);
+        inotify_watch_map[wd] = std::string(argv[i]);
+    }
+    
+    /* setup timerfd */
+
     its.it_value.tv_sec = 1;
     its.it_value.tv_nsec = 0;
-    its.it_interval.tv_sec = 0;
-    its.it_interval.tv_nsec = 500 * 1e6;
-    
-    struct epoll_event events[MAX_EVENTS], ev_stdin, ev_inotify, ev_timer;
-    
+    its.it_interval.tv_sec = 2;
+    its.it_interval.tv_nsec = 0;
+
     auto timer = fd::timerfd();
     timer.settime(its);
     
-    auto inotify = fd::inotify();
-    inotify.add_watch(argv[0], IN_ACCESS | IN_MODIFY | IN_OPEN);
+    /* setup signalfd */
     
-    ev_stdin.events = EPOLLIN;
-    ev_stdin.data.ptr = (void *) &std::cin;
-    ev_inotify.events = EPOLLIN;
-    ev_inotify.data.ptr = (void *) &inotify;
-    ev_timer.events = EPOLLIN;
-    ev_timer.data.ptr = (void *) &timer;
+    sigfillset(&mask);
+    
+    int err = sigprocmask(SIG_BLOCK, &mask, nullptr);
+    if (err < 0)
+        throw std::system_error(errno, std::system_category(), "sigprocmask()");
+    
+    auto sfd = fd::signalfd(mask);
+    
+    /* setup socket */
+    unlink("/tmp/.epoll_test.sock");
+    auto server = fd::easy::unix_socket::server("/tmp/.epoll_test.sock");
+        
+    /* setup epoll */
     
     auto epoll = fd::epoll();
-    epoll.ctl(EPOLL_CTL_ADD, STDIN_FILENO, ev_stdin);
-    epoll.ctl(EPOLL_CTL_ADD, inotify, ev_inotify);
-    epoll.ctl(EPOLL_CTL_ADD, timer, ev_timer);
+    
+    ev.events = EPOLLIN;
+    ev.data.ptr = (void *) &inotify;
+    epoll.ctl(EPOLL_CTL_ADD, inotify, ev);
+    
+    ev.data.ptr = (void *) &timer;
+    epoll.ctl(EPOLL_CTL_ADD, timer, ev);
+    
+    ev.data.ptr = (void *) &sfd;
+    epoll.ctl(EPOLL_CTL_ADD, sfd, ev);
+    
+    ev.data.ptr = (void *) &server;
+    epoll.ctl(EPOLL_CTL_ADD, server, ev);
+    
+    std::cout << "Press CTRL + c to exit\n";
     
     while (loop) {
         auto nfds = epoll.wait(events, MAX_EVENTS);
         
         for (int i = 0; i < nfds; ++i) {
-            if (events[i].data.ptr == (void *) &std::cin)
-                handle_stdin();
-            else if (events[i].data.ptr == (void *) &inotify)
-                handle_inotify_event(inotify);
-            else if (events[i].data.ptr == (void *) &timer)
+            if (events[i].data.ptr == (void *) &inotify) {
+                handle_inotify_event(inotify, inotify_watch_map);
+            } else if (events[i].data.ptr == (void *) &timer) {
                 handle_timeout(timer);
+            } else if (events[i].data.ptr == (void *) &sfd) {
+                handle_signal(sfd);
+            } else if (events[i].data.ptr == (void *) &server) {
+                std::cout << "**SERVER SOCKET: new connection\n";
+                auto sock = server.accept();
+                
+//                 int flags = sock.fcntl(F_GETFL);
+//                 sock.fcntl(F_SETFL, flags | O_NONBLOCK);
+                handle_socket(sock);
+                
+            }
         }
     }
-    
-    std::cout << "Ok\n";
     
     return 0;
 }

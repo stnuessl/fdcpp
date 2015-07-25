@@ -48,6 +48,15 @@ timerfd::timerfd(timerfd &&other)
 {
 }
 
+const timerfd &timerfd::operator=(const timerfd &other) const
+{
+    int err = ::dup2(other._fd, _fd);
+    if (err < 0)
+        throw_system_error(tag, "dup2()");
+    
+    return *this;
+}
+
 timerfd &timerfd::operator=(timerfd &&other)
 {
     ifile_descriptor::operator=(std::move(other));
@@ -60,6 +69,10 @@ timerfd timerfd::dup() const
     return timerfd(*this);
 }
 
+void timerfd::dup2(const timerfd &other) const
+{
+    *this = other;
+}
 
 void timerfd::gettime(struct itimerspec &val) const
 {

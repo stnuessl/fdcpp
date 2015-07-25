@@ -53,6 +53,15 @@ eventfd::eventfd(eventfd &&other)
 {
 }
 
+const eventfd &eventfd::operator=(const eventfd &other) const
+{
+    int err = ::dup2(other._fd, _fd);
+    if (err < 0)
+        throw_system_error(tag, "dup2()");
+    
+    return *this;
+}
+
 eventfd &eventfd::operator=(eventfd &&other)
 {
     iofile_descriptor::operator=(std::move(other));
@@ -63,6 +72,11 @@ eventfd &eventfd::operator=(eventfd &&other)
 eventfd eventfd::dup() const
 {
     return eventfd(*this);
+}
+
+void eventfd::dup2(const eventfd &other) const
+{
+    *this = other;
 }
 
 uint64_t eventfd::read() const

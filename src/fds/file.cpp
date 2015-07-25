@@ -74,6 +74,16 @@ file::file(file &&other)
 {
 }
 
+const file &file::operator=(const file &other) const
+{
+    int err = ::dup2(other._fd, _fd);
+    if (err < 0)
+        throw_system_error(tag, "dup2()");
+    
+    return *this;
+}
+
+
 file &file::operator=(file &&other)
 {
     iofile_descriptor::operator=(std::move(other));
@@ -84,6 +94,11 @@ file &file::operator=(file &&other)
 file file::dup() const
 {
     return file(*this);
+}
+
+void file::dup2(const file &other) const
+{
+    *this = other;
 }
 
 

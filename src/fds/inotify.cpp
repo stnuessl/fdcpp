@@ -53,6 +53,15 @@ inotify::inotify(inotify &&other)
 {
 }
 
+const inotify &inotify::operator=(const inotify &other) const
+{
+    int err = ::dup2(other._fd, _fd);
+    if (err < 0)
+        throw_system_error(tag, "dup2()");
+    
+    return *this;
+}
+
 inotify &inotify::operator=(inotify &&other)
 {
     ifile_descriptor::operator=(std::move(other));
@@ -63,6 +72,11 @@ inotify &inotify::operator=(inotify &&other)
 inotify inotify::dup() const
 {
     return inotify(*this);
+}
+
+void inotify::dup2(const inotify &other) const
+{
+    *this = other;
 }
 
 int inotify::add_watch(const char *path, uint32_t mask) const

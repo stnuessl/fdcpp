@@ -20,8 +20,8 @@ README not finished yet.
     * [timerfd](https://github.com/stnuessl/fdcpp#timerfd)
 * [TCP socket example](https://github.com/stnuessl/fdcpp#tcp-socket-example)
     * [C Version](https://github.com/stnuessl/fdcpp#c-version)
-    * [C++ fdcpp version](https://github.com/stnuessl/fdcpp#c++-fdcpp-version)
-    * [C++ fdcpp easy version](https://github.com/stnuessl/fdcpp#c++-fdcpp-easy-version)
+    * [C++ fdcpp version](https://github.com/stnuessl/fdcpp#c-fdcpp-version)
+    * [C++ fdcpp easy version](https://github.com/stnuessl/fdcpp#c-fdcpp-easy-version)
 
 ## Dependencies
 

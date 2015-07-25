@@ -32,21 +32,16 @@ namespace easy {
 
 timer::timer()
     : timerfd(),
+      _spec(),
+      _remaining(),
       _state(STOPPED)
 {
-    _spec.it_value.tv_sec = 0;
-    _spec.it_value.tv_nsec = 0;
-    _spec.it_interval.tv_sec = 0;
-    _spec.it_interval.tv_nsec = 0;
-    
-    _remaining.it_value.tv_sec = 0;
-    _remaining.it_value.tv_nsec = 0;
-    _remaining.it_interval.tv_sec = 0;
-    _remaining.it_interval.tv_nsec = 0;
 }
 
 timer::timer(timer &&other)
     : timerfd(std::move(other)),
+      _spec(),
+      _remaining(),
       _state(other._state)
 {
     _spec.it_value.tv_sec = other._spec.it_value.tv_sec;
@@ -62,6 +57,8 @@ timer::timer(timer &&other)
 
 timer::timer(const struct itimerspec &ts)
     : timerfd(),
+      _spec(),
+      _remaining(),
       _state(STOPPED)
 {
     settime(ts);

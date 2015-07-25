@@ -70,6 +70,7 @@ void handle_inotify_event(const fd::inotify &inotify,
 
 void handle_timeout(const fd::timerfd &timer)
 {
+    /* clear data on file descriptor, otherwise epoll will trigger again */
     (void) timer.read();
     
     std::cout << "**TIMERFD: timeout\n";
@@ -100,8 +101,6 @@ void handle_socket(const fd::socket &sock)
             
         std::cout << std::string(buf, n);
     }
-    
-    std::cout << "'\n";
 }
 
 int main(int argc, char *argv[])
@@ -109,6 +108,7 @@ int main(int argc, char *argv[])
     struct itimerspec its;
     sigset_t mask;
     std::unordered_map<int, std::string> inotify_watch_map;
+    std::unordered_map<int, fd::socket> conn_map;
     struct epoll_event events[MAX_EVENTS], ev;
     
     /* setup inotify */
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 
     its.it_value.tv_sec = 1;
     its.it_value.tv_nsec = 0;
-    its.it_interval.tv_sec = 2;
+    its.it_interval.tv_sec = 10;
     its.it_interval.tv_nsec = 0;
 
     auto timer = fd::timerfd();
@@ -161,7 +161,8 @@ int main(int argc, char *argv[])
     ev.data.ptr = (void *) &server;
     epoll.ctl(EPOLL_CTL_ADD, server, ev);
     
-    std::cout << "Press CTRL + c to exit\n";
+    std::cout << "Use: \"Hello, World!\" | ncat -U /tmp/.epoll_test.sock\n"
+              << "Press CTRL + c to exit\n";
     
     while (loop) {
         auto nfds = epoll.wait(events, MAX_EVENTS);
@@ -176,11 +177,16 @@ int main(int argc, char *argv[])
             } else if (events[i].data.ptr == (void *) &server) {
                 std::cout << "**SERVER SOCKET: new connection\n";
                 auto sock = server.accept();
+                int fd = sock.fd();
                 
-//                 int flags = sock.fcntl(F_GETFL);
-//                 sock.fcntl(F_SETFL, flags | O_NONBLOCK);
-                handle_socket(sock);
+                ev.data.fd = sock.fd();
+                epoll.ctl(EPOLL_CTL_ADD, sock, ev);
                 
+                conn_map.insert(std::make_pair(fd, std::move(sock)));
+            } else {
+                auto it = conn_map.find(events[i].data.fd);
+                handle_socket(it->second);
+                conn_map.erase(it);
             }
         }
     }

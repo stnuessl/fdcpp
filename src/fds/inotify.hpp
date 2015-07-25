@@ -31,7 +31,7 @@
 #include <fds/base/ifile_descriptor.hpp>
 
 #define FOR_EACH_INOTIFY_EVENT(__buffer, __size, __event)                      \
-    for ((__event) = (struct inotify_event *)  (__buffer);                     \
+    for ((__event) = (struct inotify_event *) (__buffer);                      \
          (char *)(__event) < (char *) (__buffer) + (__size);                   \
          (__event) = (struct inotify_event *)                                  \
          ((char *)(__event) + sizeof(*(__event)) + (__event)->len))

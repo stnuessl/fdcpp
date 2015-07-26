@@ -60,6 +60,12 @@ file_descriptor &file_descriptor::operator=(file_descriptor &&other)
     return *this;
 }
 
+file_descriptor::operator int() const
+{
+    return _fd;
+}
+
+
 int file_descriptor::fcntl(int cmd)
 {
     int ret = ::fcntl(_fd, cmd);
@@ -87,19 +93,10 @@ int file_descriptor::fcntl(int cmd, struct flock *arg)
     return ret;
 }
 
-
 int file_descriptor::fd() const
 {
     return _fd;
 }
-
-
-
-
-
-
-
-
 
 
 }

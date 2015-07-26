@@ -42,7 +42,9 @@ public:
     
     file_descriptor &operator=(const file_descriptor &other) = delete;
     file_descriptor &operator=(file_descriptor &&other);
-
+    
+    operator int() const;
+    
     int fcntl(int cmd);
     int fcntl(int cmd, int arg);
     int fcntl(int cmd, struct flock *fl);

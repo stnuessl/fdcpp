@@ -43,7 +43,7 @@ README not finished yet.
 * Nice C++ interface to write your own abstractions based on the library classes.
 * No boilerplate code for error checking: errors are propagated via exceptions.
 * Overloaded functions and default arguments to simplify interfaces.
-* No leaking of file descriptor.
+* No file descriptor leaking.
 * The use of class functions makes it impossible to call an inappropriate function
 on a file descriptor (e.g. calling accept() on an opened file).
 

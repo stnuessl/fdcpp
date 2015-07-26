@@ -45,8 +45,6 @@ public:
     
     void ctl(int op, int fd, struct epoll_event &ev) const;
     void ctl(int op, int fd) const;
-    void ctl(int op, const file_descriptor &desc, struct epoll_event &ev) const;
-    void ctl(int op, const file_descriptor &desc);
     
     int wait(struct epoll_event *events, int size, int timeout_ms = -1) const;
 private:

@@ -39,70 +39,6 @@
 
 #define MAX_EVENTS 10
 
-bool loop = true;
-
-void handle_inotify_event(const fd::inotify &inotify, 
-                          std::unordered_map<int, std::string> &map)
-{
-    struct inotify_event *event;
-    char buffer[4096];
-    
-    std::cout << "**INOTIFY: ";
-    
-    auto n = inotify.read(buffer, sizeof(buffer));
-    
-    FOR_EACH_INOTIFY_EVENT(buffer, n, event) {
-        if (event->len > 0)
-            std::cout << event->name << " ";
-        else
-            std::cout << map[event->wd] << " ";
-        
-        if (event->mask & IN_ACCESS)
-            std::cout << "IN_ACCESS ";
-        if (event->mask & IN_MODIFY)
-            std::cout << "IN_MODIFY ";
-        if (event->mask & IN_OPEN)
-            std::cout << "IN_OPEN ";
-        
-        std::cout << '\n';
-    }
-}
-
-void handle_timeout(const fd::timerfd &timer)
-{
-    /* clear data on file descriptor, otherwise epoll will trigger again */
-    (void) timer.read();
-    
-    std::cout << "**TIMERFD: timeout\n";
-}
-
-void handle_signal(const fd::signalfd &sfd)
-{
-    struct signalfd_siginfo info;
-    
-    sfd.read(&info);
-    
-    std::cout << "**SIGNALFD: received " << strsignal(info.ssi_signo) << '\n';
-    
-    if (info.ssi_signo == SIGTERM || info.ssi_signo == SIGINT)
-        loop = false;
-}
-
-void handle_socket(const fd::socket &sock)
-{
-    char buf[128];
-    
-    std::cout << "**UNIX_CONNECTION: received '";
-    
-    while (1) {
-        auto n = sock.recv(buf, sizeof(buf), MSG_NOSIGNAL);
-        if (n == 0)
-            break;
-            
-        std::cout << std::string(buf, n);
-    }
-}
-
 int main(int argc, char *argv[])
 {
     struct itimerspec its;
@@ -127,8 +63,8 @@ int main(int argc, char *argv[])
     its.it_interval.tv_sec = 10;
     its.it_interval.tv_nsec = 0;
 
-    auto timer = fd::timerfd();
-    timer.settime(its);
+    auto timerfd = fd::timerfd();
+    timerfd.settime(its);
     
     /* setup signalfd */
     
@@ -148,44 +84,98 @@ int main(int argc, char *argv[])
     
     auto epoll = fd::epoll();
     
+    /* initialize all bytes in the data union, make valgrind happy ;-) */
+    ev.data.u64 = 0;
+    
     ev.events = EPOLLIN;
-    ev.data.ptr = (void *) &inotify;
+    ev.data.fd = inotify;
     epoll.ctl(EPOLL_CTL_ADD, inotify, ev);
     
-    ev.data.ptr = (void *) &timer;
-    epoll.ctl(EPOLL_CTL_ADD, timer, ev);
+    ev.data.fd = timerfd;
+    epoll.ctl(EPOLL_CTL_ADD, timerfd, ev);
     
-    ev.data.ptr = (void *) &sfd;
+    ev.data.fd = sfd;
     epoll.ctl(EPOLL_CTL_ADD, sfd, ev);
     
-    ev.data.ptr = (void *) &server;
+    ev.data.fd = server;
     epoll.ctl(EPOLL_CTL_ADD, server, ev);
     
     std::cout << "Use: \"Hello, World!\" | ncat -U /tmp/.epoll_test.sock\n"
               << "Press CTRL + c to exit\n";
+              
+    bool loop = true;
     
     while (loop) {
         auto nfds = epoll.wait(events, MAX_EVENTS);
         
         for (int i = 0; i < nfds; ++i) {
-            if (events[i].data.ptr == (void *) &inotify) {
-                handle_inotify_event(inotify, inotify_watch_map);
-            } else if (events[i].data.ptr == (void *) &timer) {
-                handle_timeout(timer);
-            } else if (events[i].data.ptr == (void *) &sfd) {
-                handle_signal(sfd);
-            } else if (events[i].data.ptr == (void *) &server) {
-                std::cout << "**SERVER SOCKET: new connection\n";
-                auto sock = server.accept();
-                int fd = sock.fd();
+            if (events[i].data.fd == inotify) {
+                struct inotify_event *event;
+                char buffer[4096];
                 
-                ev.data.fd = sock.fd();
+                std::cout << "**INOTIFY: ";
+                
+                auto n = inotify.read(buffer, sizeof(buffer));
+                
+                FOR_EACH_INOTIFY_EVENT(buffer, n, event) {
+                    if (event->len > 0)
+                        std::cout << event->name << " ";
+                    else
+                        std::cout << inotify_watch_map[event->wd] << " ";
+                    
+                    if (event->mask & IN_ACCESS)
+                        std::cout << "IN_ACCESS ";
+                    if (event->mask & IN_MODIFY)
+                        std::cout << "IN_MODIFY ";
+                    if (event->mask & IN_OPEN)
+                        std::cout << "IN_OPEN ";
+                    
+                    std::cout << '\n';
+                }
+            } else if (events[i].data.fd == timerfd) {
+                /* 
+                 * Clear data on file descriptor, otherwise epoll will 
+                 * trigger again.
+                 */
+                (void) timerfd.read();
+                
+                std::cout << "**TIMERFD: timeout\n";
+            } else if (events[i].data.fd == sfd) {
+                struct signalfd_siginfo info;
+                
+                sfd.read(&info);
+                
+                std::cout << "**SIGNALFD: received " 
+                          << strsignal(info.ssi_signo) << '\n';
+                
+                if (info.ssi_signo == SIGTERM || info.ssi_signo == SIGINT)
+                    loop = false;
+                
+            } else if (events[i].data.fd == server) {
+                auto sock = server.accept();
+
+                ev.data.fd = sock;
                 epoll.ctl(EPOLL_CTL_ADD, sock, ev);
                 
-                conn_map.insert(std::make_pair(fd, std::move(sock)));
+                /* 
+                 * Notice how std::make_pair() can't make use of the cast 
+                 * operator, therefore we can use the socket::fd() function
+                 */
+                conn_map.insert(std::make_pair(sock.fd(), std::move(sock)));
+                std::cout << "**SERVER SOCKET: new connection\n";
             } else {
+                char buf[128];
                 auto it = conn_map.find(events[i].data.fd);
-                handle_socket(it->second);
+                
+                std::cout << "**UNIX_CONNECTION: received: ";
+                
+                while (1) {
+                    auto n = it->second.recv(buf, sizeof(buf), MSG_NOSIGNAL);
+                    if (n == 0)
+                        break;
+                    
+                    std::cout << std::string(buf, n);
+                }
                 conn_map.erase(it);
             }
         }

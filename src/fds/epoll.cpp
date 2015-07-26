@@ -94,16 +94,6 @@ void epoll::ctl(int op, int fd) const
     ctl(op, fd, nullptr);
 }
 
-void epoll::ctl(int op, const file_descriptor &desc, epoll_event &ev) const
-{
-    ctl(op, desc.fd(), &ev);
-}
-
-void epoll::ctl(int op, const file_descriptor &desc)
-{
-    ctl(op, desc.fd(), nullptr);
-}
-
 int epoll::wait(epoll_event *events, int size, int timeout) const
 {
     auto n = epoll_wait(_fd, events, size, timeout);

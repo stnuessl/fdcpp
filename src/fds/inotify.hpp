@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef _FD_INOTIFY_HPP
-#define _FD_INOTIFY_HPP
+#ifndef _FDCPP_INOTIFY_HPP
+#define _FDCPP_INOTIFY_HPP
 
 #include <sys/inotify.h>
 #include <string>
@@ -60,4 +60,4 @@ private:
 
 }
 
-#endif /* _FD_INOTIFY_HPP */
+#endif /* _FDCPP_INOTIFY_HPP */

@@ -168,6 +168,28 @@ void test_unbuffered()
               << "Throughput: " << throughput / 1e6 << " mb/s\n";
 }
 
+void test_string()
+{
+    unlink("/tmp/.socket_stream_test");
+    
+    auto server = fd::easy::unix_socket::server("/tmp/.socket_stream_test");
+    auto client = fd::easy::unix_socket::client("/tmp/.socket_stream_test");
+
+    auto server_stream = fd::easy::buffered_socket(server.accept());
+    auto client_stream = fd::easy::buffered_socket(std::move(client));
+//     
+    std::string msg1, msg2;
+//     
+    client_stream << "Hello, World!" << "This is a string message";
+    client_stream.flush();
+//     
+    server_stream >> msg1 >> msg2;
+    
+    std::cout << "First message: \"" << msg1 << "\"\nSecond message: \""
+              << msg2 << "\"\n";
+    
+}
+
 int main(int argc, char *argv[])
 {
     (void) argc;
@@ -175,6 +197,7 @@ int main(int argc, char *argv[])
     
     test_buffered();
     test_unbuffered();
+    test_string();
     
     return 0;
 }

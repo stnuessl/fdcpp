@@ -163,19 +163,20 @@ buffered_socket &buffered_socket::operator<<(double val)
     return operator<<(ival);
 }
 
-// socket_stream &socket_stream::operator<<(char *str) const
-// {
-//     send(str, std::strlen(str));
-//     
-//     return *this;
-// }
-// 
-// socket_stream &socket_stream::operator<<(const std::string &str) const
-// {
-//     send(str.data(), str.size());
-//     
-//     return *this;
-// }
+buffered_socket &buffered_socket::operator<<(const char *val)
+{
+    write_output_buffer(val, std::strlen(val) + 1);
+    
+    return *this;
+}
+
+buffered_socket &buffered_socket::operator<<(const std::string &val)
+{
+    write_output_buffer(val.c_str(), val.size() + 1);
+    
+    return *this;
+}
+
 
 buffered_socket &buffered_socket::operator>>(char &val)
 {
@@ -274,27 +275,51 @@ buffered_socket &buffered_socket::operator>>(double &val)
     return *this;
 }
 
+buffered_socket &buffered_socket::operator>>(std::string &val)
+{
+    recv_if_possible();
+    
+    auto size = std::strlen(_buffer_in + _in_rd);
+
+    val.clear();
+    val.reserve(size);
+    
+    while (size--) {
+        char c;
+        
+        read_input_buffer(&c, sizeof(c));
+        
+        val.push_back(c);
+    }
+    
+    /* skip terminating '\0' */
+    ++_in_rd;
+    
+    return *this;
+}
+
+
 void buffered_socket::buffered_socket::flush()
 {
-    send(_buffer_out, _out_size);
+    send_all(_buffer_out, _out_size);
     _out_size = 0;
 }
 
 void buffered_socket::read_input_buffer(char *buffer, size_t size)
 {
-    if (_in_size != _in_capacity)
-        _in_size += recv(_buffer_in + _in_size, _in_capacity - _in_size);
+    recv_if_possible();
     
     if (_in_rd + size >= _in_size) {
 
         size_t copy_size  = _in_size - _in_rd;
         size_t recv_size = size - copy_size;
-        
-        assert(copy_size + recv_size == size && "INVALID_SIZE");
 
         memmove(buffer, _buffer_in + _in_rd, copy_size);
-        if (recv_size != 0)
-            _socket.recv(buffer + copy_size, recv_size, MSG_NOSIGNAL | MSG_WAITALL);
+        if (recv_size != 0) {
+            int flags = MSG_NOSIGNAL | MSG_WAITALL;
+         
+            _socket.recv(buffer + copy_size, recv_size, flags);
+        }
         
         _in_rd = 0;
         _in_size = 0;
@@ -309,12 +334,12 @@ void buffered_socket::read_input_buffer(char *buffer, size_t size)
 void buffered_socket::write_output_buffer(const char *buffer, size_t size)
 {
     if (size >= _out_capacity) {
-        send(buffer, size);
+        send_all(buffer, size);
         return;
     }
     
     if (_out_size + size >= _out_capacity) {
-        send(_buffer_out, _out_size);
+        send_all(_buffer_out, _out_size);
         _out_size = 0;
     }
     
@@ -323,23 +348,25 @@ void buffered_socket::write_output_buffer(const char *buffer, size_t size)
 }
 
 
-size_t buffered_socket::recv(char *buffer, size_t size) const
+void buffered_socket::recv_if_possible() const
 {
-    size_t n = 0;
+    if (_in_size >= _in_capacity)
+        return;
+    
+    auto buffer = _buffer_in + _in_size;
+    auto size = _in_capacity - _in_size;
     
     try {
-        n = _socket.recv(buffer, size, MSG_DONTWAIT | MSG_NOSIGNAL);
+        _in_size += _socket.recv(buffer, size, MSG_DONTWAIT | MSG_NOSIGNAL);
     } catch(std::system_error &e) {
         auto val = e.code().value();
         
         if (val != EAGAIN && val != EWOULDBLOCK)
             throw e;
     }
-    
-    return n;
 }
 
-void buffered_socket::send(const char *buffer, size_t size) const
+void buffered_socket::send_all(const char *buffer, size_t size) const
 {
     size_t n = 0;
     

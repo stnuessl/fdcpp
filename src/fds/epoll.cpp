@@ -89,9 +89,95 @@ void epoll::ctl(int op, int fd, struct epoll_event &ev) const
     ctl(op, fd, &ev);
 }
 
-void epoll::ctl(int op, int fd) const
+void epoll::ctl(int op, int fd, uint32_t event_mask, int data) const
 {
-    ctl(op, fd, nullptr);
+    struct epoll_event ev;
+    
+    /* initialize memory of data field */
+    ev.data.u64 = 0;
+    
+    ev.data.fd = data;
+    ev.events = event_mask;
+    
+    ctl(op, fd, &ev);
+}
+
+void epoll::ctl(int op, int fd, uint32_t event_mask, uint32_t data) const
+{
+    struct epoll_event ev;
+    
+    /* initialize memory of data field */
+    ev.data.u64 = 0;
+    
+    ev.data.u32 = data;
+    ev.events = event_mask;
+    
+    ctl(op, fd, &ev);
+}
+
+void epoll::ctl(int op, int fd, uint32_t event_mask, uint64_t data) const
+{
+    struct epoll_event ev;
+    
+    ev.data.u64 = data;
+    ev.events = event_mask;
+    
+    ctl(op, fd, &ev);
+}
+
+void epoll::ctl(int op, int fd, uint32_t event_mask, void *data) const
+{
+    struct epoll_event ev;
+    
+    ev.data.ptr = data;
+    ev.events = event_mask;
+    
+    ctl(op, fd, &ev);
+}
+
+void epoll::add(int fd, uint32_t event_mask, int data) const
+{
+    ctl(EPOLL_CTL_ADD, fd, event_mask, data);
+}
+
+void epoll::add(int fd, uint32_t event_mask, uint32_t data) const
+{
+    ctl(EPOLL_CTL_ADD, fd, event_mask, data);
+}
+
+void epoll::add(int fd, uint32_t event_mask, uint64_t data) const
+{
+    ctl(EPOLL_CTL_ADD, fd, event_mask, data);
+}
+
+void epoll::add(int fd, uint32_t event_mask, void *data) const
+{
+    ctl(EPOLL_CTL_ADD, fd, event_mask, data);
+}
+
+void epoll::mod(int fd, uint32_t event_mask, int data) const
+{
+    ctl(EPOLL_CTL_MOD, fd, event_mask, data);
+}
+
+void epoll::mod(int fd, uint32_t event_mask, uint32_t data) const
+{
+    ctl(EPOLL_CTL_MOD, fd, event_mask, data);
+}
+
+void epoll::mod(int fd, uint32_t event_mask, uint64_t data) const
+{
+    ctl(EPOLL_CTL_MOD, fd, event_mask, data);
+}
+
+void epoll::mod(int fd, uint32_t event_mask, void *data) const
+{
+    ctl(EPOLL_CTL_MOD, fd, event_mask, data);
+}
+
+void epoll::del(int fd) const
+{
+    ctl(EPOLL_CTL_DEL, fd, nullptr);
 }
 
 int epoll::wait(epoll_event *events, int size, int timeout) const
@@ -102,5 +188,18 @@ int epoll::wait(epoll_event *events, int size, int timeout) const
     
     return n;
 }
+
+int epoll::pwait(struct epoll_event *events, 
+                 int size, 
+                 const sigset_t &sigmask, 
+                 int timeout_ms) const
+{
+    auto n = epoll_pwait(_fd, events, size, timeout_ms, &sigmask);
+    if (n < 0)
+        throw_system_error(tag, "pwait()");
+    
+    return n;
+}
+
 
 }

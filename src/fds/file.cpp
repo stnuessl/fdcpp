@@ -125,9 +125,9 @@ void file::fchown(uid_t uid, gid_t gid) const
         throw_system_error(tag, "fchown()");
 }
 
-void file::fstat(struct stat *st) const
+void file::fstat(struct stat &st) const
 {
-    auto err = ::fstat(_fd, st);
+    auto err = ::fstat(_fd, &st);
     if (err < 0)
         throw_system_error(tag, "fstat()");
 }

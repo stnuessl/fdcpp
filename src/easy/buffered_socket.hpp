@@ -55,6 +55,8 @@ public:
     buffered_socket &operator<<(int64_t val);
     buffered_socket &operator<<(float val);
     buffered_socket &operator<<(double val);
+    buffered_socket &operator<<(const char *val);
+    buffered_socket &operator<<(const std::string &val);
 
     buffered_socket &operator>>(char &val);
     buffered_socket &operator>>(uint8_t &val);
@@ -67,6 +69,7 @@ public:
     buffered_socket &operator>>(int64_t &val);
     buffered_socket &operator>>(float &val);
     buffered_socket &operator>>(double &val);
+    buffered_socket &operator>>(std::string &val);
     
     void flush();
 
@@ -74,9 +77,9 @@ private:
     void read_input_buffer(char *buffer, size_t size);
     void write_output_buffer(const char *buffer, size_t size);
     
-    size_t recv(char *buffer, size_t size) const;
-    void send(const char *buffer, size_t size) const;
-    
+    void recv_if_possible(char *buffer, size_t size) const;
+    void send_all(const char *buffer, size_t size) const;
+        
     socket _socket;
     char *_buffer_in;
     size_t _in_rd;

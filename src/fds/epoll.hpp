@@ -44,9 +44,29 @@ public:
     void dup2(const epoll &other) const;
     
     void ctl(int op, int fd, struct epoll_event &ev) const;
-    void ctl(int op, int fd) const;
+    void ctl(int op, int fd, uint32_t event_mask, int data) const;
+    void ctl(int op, int fd, uint32_t event_mask, uint32_t data) const;
+    void ctl(int op, int fd, uint32_t event_mask, uint64_t data) const;
+    void ctl(int op, int fd, uint32_t event_mask, void *data) const;
+    
+    void add(int fd, uint32_t event_mask, int data) const;
+    void add(int fd, uint32_t event_mask, uint32_t data) const;
+    void add(int fd, uint32_t event_mask, uint64_t data) const;
+    void add(int fd, uint32_t event_mask, void *data) const;
+    
+    void mod(int fd, uint32_t event_mask, int data) const;
+    void mod(int fd, uint32_t event_mask, uint32_t data) const;
+    void mod(int fd, uint32_t event_mask, uint64_t data) const;
+    void mod(int fd, uint32_t event_mask, void *data) const;
+    
+    void del(int fd) const;
     
     int wait(struct epoll_event *events, int size, int timeout_ms = -1) const;
+    int pwait(struct epoll_event *events, 
+              int size, 
+              const sigset_t &sigmask, 
+              int timeout_ms = -1) const;
+    
 private:
     epoll(const epoll &other);
     const epoll &operator=(const epoll &other) const;

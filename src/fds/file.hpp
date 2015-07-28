@@ -50,11 +50,12 @@ public:
     
     void fchmod(mode_t mode) const;
     void fchown(uid_t uid, gid_t gid) const;
-    void fstat(struct stat *st) const;
-    void fsync() const;
+    void fstat(struct stat &st) const;
     void ftruncate(size_t size = 0) const;
+    void fsync() const;
     long fpathconf(int name) const;
     void fdatasync() const;
+    
 private:
     file(const file &other);
     const file &operator=(const file &other) const;

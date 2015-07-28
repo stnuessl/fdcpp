@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     sigset_t mask;
     std::unordered_map<int, std::string> inotify_watch_map;
     std::unordered_map<int, fd::socket> conn_map;
-    struct epoll_event events[MAX_EVENTS], ev;
+    struct epoll_event events[MAX_EVENTS];
     
     /* setup inotify */
     
@@ -83,22 +83,11 @@ int main(int argc, char *argv[])
     /* setup epoll */
     
     auto epoll = fd::epoll();
-    
-    /* initialize all bytes in the data union, make valgrind happy ;-) */
-    ev.data.u64 = 0;
-    
-    ev.events = EPOLLIN;
-    ev.data.fd = inotify;
-    epoll.ctl(EPOLL_CTL_ADD, inotify, ev);
-    
-    ev.data.fd = timerfd;
-    epoll.ctl(EPOLL_CTL_ADD, timerfd, ev);
-    
-    ev.data.fd = sfd;
-    epoll.ctl(EPOLL_CTL_ADD, sfd, ev);
-    
-    ev.data.fd = server;
-    epoll.ctl(EPOLL_CTL_ADD, server, ev);
+    epoll.add(inotify, EPOLLIN, inotify);
+    epoll.add(timerfd, EPOLLIN, timerfd);
+    epoll.add(sfd, EPOLLIN, sfd);
+    epoll.add(server, EPOLLIN, server);
+
     
     std::cout << "Use: \"Hello, World!\" | ncat -U /tmp/.epoll_test.sock\n"
               << "Press CTRL + c to exit\n";
@@ -154,8 +143,7 @@ int main(int argc, char *argv[])
             } else if (events[i].data.fd == server) {
                 auto sock = server.accept();
 
-                ev.data.fd = sock;
-                epoll.ctl(EPOLL_CTL_ADD, sock, ev);
+                epoll.add(sock, EPOLLIN, sock);
                 
                 /* 
                  * Notice how std::make_pair() can't make use of the cast 

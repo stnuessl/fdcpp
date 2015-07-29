@@ -348,7 +348,7 @@ void buffered_socket::write_output_buffer(const char *buffer, size_t size)
 }
 
 
-void buffered_socket::recv_if_possible() const
+void buffered_socket::recv_if_possible() 
 {
     if (_in_size >= _in_capacity)
         return;

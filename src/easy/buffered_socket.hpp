@@ -77,7 +77,7 @@ private:
     void read_input_buffer(char *buffer, size_t size);
     void write_output_buffer(const char *buffer, size_t size);
     
-    void recv_if_possible(char *buffer, size_t size) const;
+    void recv_if_possible();
     void send_all(const char *buffer, size_t size) const;
         
     socket _socket;

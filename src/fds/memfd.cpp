@@ -44,9 +44,25 @@ memfd::memfd(const std::string &name, int flags)
 
 }
 
+memfd::memfd(const memfd &other)
+: iofile_descriptor(::dup(other._fd))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "dup()");
+}
+
 memfd::memfd(memfd &&other)
     : iofile_descriptor(std::move(other))
 {
+}
+
+memfd &memfd::operator=(const memfd &other)
+{
+    int err = ::dup2(other._fd, _fd);
+    if (err < 0)
+        throw_system_error(tag, "dup2()");
+    
+    return *this;
 }
 
 memfd &memfd::operator=(memfd &&other)
@@ -56,15 +72,22 @@ memfd &memfd::operator=(memfd &&other)
     return *this;
 }
 
+memfd memfd::dup() const
+{
+    return memfd(*this);
+}
+
+void memfd::dup2(const memfd &other) const
+{
+    *this = other;
+}
+
 void memfd::ftruncate(size_t size) const
 {
     auto err = ::ftruncate(_fd, static_cast<off_t>(size));
     if (err < 0)
         throw_system_error(tag, "ftruncate()");
 }
-
-
-
 
 
 }

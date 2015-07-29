@@ -22,36 +22,48 @@
  * SOFTWARE.
  */
 
-#ifndef _FDCPP_MEMFD_HPP_
-#define _FDCPP_MEMFD_HPP_
+#ifndef _FDCPP_MMAP_HPP_
+#define _FDCPP_MMAP_HPP_
 
-#include <sys/memfd.h>
+#include <sys/mman.h>
 
-#include <string>
-
-#include <fds/base/iofile_descriptor.hpp>
+#include <fds/file.hpp>
 
 namespace fd {
 
-class memfd : public iofile_descriptor {
-    explicit memfd(const char *name, int flags = 0);
-    explicit memfd(const std::string &name, int flags = 0);
-    memfd(memfd &&other);
+namespace easy {
+
+class mmap {
+public:
+    explicit mmap(size_t len, int prot, int flags, int fd, off_t off = 0);
+    explicit mmap(void *addr, 
+                  size_t len, 
+                  int prot, 
+                  int flags, 
+                  int fd, 
+                  off_t off = 0);
+    explicit mmap(const file &file, int prot, int flags, off_t off = 0);
+    mmap(const mmap &other) = delete;
+    mmap(mmap &&other);
     
-    memfd dup() const;
-    void dup2(const memfd &other) const;
+    ~mmap();
     
-    virtual ~memfd() = default;
+    mmap &operator=(const mmap &other) = delete;
+    mmap &operator=(mmap &&other);
     
-    memfd &operator=(memfd &&other);
+    char &operator[](size_t i);
+    const char &operator[](size_t i) const;
     
-    void ftruncate(size_t size = 0) const;
+    operator char *();
+    operator const char *() const;
     
+    size_t size() const;
 private:
-    memfd(const memfd &other);
-    memfd &operator=(const memfd &other);
+    char *_addr;
+    size_t _size;
 };
 
 }
+}
 
-#endif /* _FDCPP_MEMFD_HPP_ */
+#endif /* _FDCPP_MMAP_HPP_ */

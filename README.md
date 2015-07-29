@@ -124,7 +124,7 @@ either plain C or the fdcpp library.
     int new_sock = accept(sock, NULL, NULL);
     if (new_sock < 0) {
         perror("accept");
-        continue;
+        goto fail;
     }
     
     /* handle connection here */
@@ -135,7 +135,9 @@ either plain C or the fdcpp library.
     exit(EXIT_SUCCESS);
     
 fail:
-    close(sock);
+    if (sock >= 0)
+        close(sock);
+    
     exit(EXIT_FAILURE);
 }
 ```
@@ -176,7 +178,7 @@ fail:
 
 {
     try {
-        auto conn = fd::easy::tcp_socket(INADDR_ANY, 7000).accept();
+        auto conn = fd::easy::tcp_socket::server(INADDR_ANY, 7000).accept();
         
         /* handle connection here */
     } catch (std::system_error &e) {

@@ -30,7 +30,7 @@ set(SRC
     src/fds/eventfd.cpp
     src/fds/file.cpp
     src/fds/inotify.cpp
-    #src/fds/memfd.cpp
+    src/fds/memfd.cpp
     src/fds/signalfd.cpp
     src/fds/socket.cpp
     src/fds/timerfd.cpp
@@ -48,7 +48,7 @@ set(HDR_FD
     src/fds/eventfd.hpp
     src/fds/file.hpp
     src/fds/inotify.hpp
-    #src/fds/memfd.hpp
+    src/fds/memfd.hpp
     src/fds/signalfd.hpp
     src/fds/socket.hpp
     src/fds/timerfd.hpp

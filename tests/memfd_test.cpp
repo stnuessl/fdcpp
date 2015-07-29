@@ -22,38 +22,24 @@
  * SOFTWARE.
  */
 
-#ifndef _FDCPP_MEMFD_HPP_
-#define _FDCPP_MEMFD_HPP_
+#include <iostream>
 
-// #include <sys/memfd.h>
+#include <fdcpp/fds/memfd.hpp>
+#include <fdcpp/easy/mmap.hpp>
 
-#include <string>
-
-#include <fds/base/iofile_descriptor.hpp>
-
-namespace fd {
-
-class memfd : public iofile_descriptor {
-public:
-    explicit memfd(const char *name, int flags = 0);
-    explicit memfd(const std::string &name, int flags = 0);
-    memfd(memfd &&other);
+int main(int argc, char *argv[])
+{
+    (void) argc;
+    (void) argv;
     
-    memfd dup() const;
-    void dup2(const memfd &other) const;
+    size_t size = 128;
     
-    virtual ~memfd() = default;
+    auto memfd = fd::memfd("memfd_test");
+    memfd.ftruncate(size);
     
-    memfd &operator=(memfd &&other);
+    auto mmap = fd::easy::mmap(size, PROT_READ | PROT_WRITE, MAP_SHARED, memfd);
     
-    void ftruncate(size_t size = 0) const;
-    void fstat(struct stat &st) const;
+    std::cout << "Ok\n";
     
-private:
-    memfd(const memfd &other);
-    const memfd &operator=(const memfd &other) const;
-};
-
+    return 0;
 }
-
-#endif /* _FDCPP_MEMFD_HPP_ */

@@ -27,8 +27,6 @@
 
 #include <sys/mman.h>
 
-#include <fds/file.hpp>
-
 namespace fd {
 
 namespace easy {
@@ -42,7 +40,6 @@ public:
                   int flags, 
                   int fd, 
                   off_t off = 0);
-    explicit mmap(const file &file, int prot, int flags, off_t off = 0);
     mmap(const mmap &other) = delete;
     mmap(mmap &&other);
     
@@ -53,6 +50,9 @@ public:
     
     char &operator[](size_t i);
     const char &operator[](size_t i) const;
+    
+    char *operator+(size_t i);
+    const char *operator+(size_t i) const;
     
     operator char *();
     operator const char *() const;

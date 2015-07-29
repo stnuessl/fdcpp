@@ -47,21 +47,6 @@ mmap::mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off)
         throw_system_error(tag, "mmap()");
 }
 
-mmap::mmap(const file &file, int prot, int flags, off_t off)
-    : _addr(nullptr),
-      _size(0)
-{
-    struct stat st;
-    
-    file.fstat(st);
-    
-    _size = st.st_size;
-    _addr = static_cast<char *>(::mmap(nullptr, _size, prot, flags, file, off));
-    if (_addr == MAP_FAILED)
-        throw_system_error(tag, "mmap()");
-}
-
-
 // mmap::mmap(const mmap &other)
 // {
 // 
@@ -102,6 +87,16 @@ char &mmap::operator[](size_t i)
 const char &mmap::operator[](size_t i) const
 {
     return _addr[i];
+}
+
+char *mmap::operator+(size_t i)
+{
+    return _addr + i;
+}
+
+const char *mmap::operator+(size_t i) const
+{
+    return _addr + i;
 }
 
 mmap::operator char *()

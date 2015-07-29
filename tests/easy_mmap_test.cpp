@@ -26,6 +26,7 @@
 #include <iostream>
 
 #include <fdcpp/easy/mmap.hpp>
+#include <fdcpp/fds/file.hpp>
 
 // #include <unistd.h>
 // #include <sys/types.h>
@@ -72,15 +73,20 @@
 
 int main(int argc, char *argv[])
 {
+    size_t size = 128;
+    
     (void) argc;
     (void) argv;
     
     auto file = fd::file("/tmp/easy_mmap_test.txt", O_CREAT | O_RDWR, 0644);
-    file.ftruncate(128);
+    file.ftruncate(size);
     
-    auto mmap = fd::easy::mmap(file, PROT_READ | PROT_WRITE, MAP_SHARED);
+    auto mmap = fd::easy::mmap(size, PROT_READ | PROT_WRITE, MAP_SHARED, file);
     
     std::strncpy(mmap, "Hello, World!\n", mmap.size());
+    
+    if (*(mmap + 1) != 'e')
+        throw std::logic_error("mmap::operator+()");
     
     std::cout << "Ok\n";
     

@@ -23,6 +23,8 @@
  */
 
 #include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/stat.h>
 
 #include <utility>
 
@@ -31,17 +33,23 @@
 
 static const char *tag = "memfd";
 
+static int memfd_create(const char *name, int flags)
+{
+    return static_cast<int>(syscall(SYS_memfd_create, name, flags));
+}
+
 namespace fd {
 
 memfd::memfd(const char *name, int flags)
     : iofile_descriptor(memfd_create(name, flags))
 {
+    if (_fd < 0)
+        throw_system_error(tag, "memfd()");
 }
 
 memfd::memfd(const std::string &name, int flags)
     : memfd(name.c_str(), flags)
 {
-
 }
 
 memfd::memfd(const memfd &other)
@@ -56,7 +64,7 @@ memfd::memfd(memfd &&other)
 {
 }
 
-memfd &memfd::operator=(const memfd &other)
+const memfd &memfd::operator=(const memfd &other) const
 {
     int err = ::dup2(other._fd, _fd);
     if (err < 0)
@@ -87,6 +95,13 @@ void memfd::ftruncate(size_t size) const
     auto err = ::ftruncate(_fd, static_cast<off_t>(size));
     if (err < 0)
         throw_system_error(tag, "ftruncate()");
+}
+
+void memfd::fstat(struct stat &st) const
+{
+    auto err = ::fstat(_fd, &st);
+    if (err < 0)
+        throw_system_error(tag, "fstat()");
 }
 
 

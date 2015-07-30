@@ -43,6 +43,7 @@ public:
     epoll dup() const;
     void dup2(const epoll &other) const;
     
+    void ctl(int op, int fd, struct epoll_event *ev = nullptr) const;
     void ctl(int op, int fd, struct epoll_event &ev) const;
     void ctl(int op, int fd, uint32_t event_mask, int data) const;
     void ctl(int op, int fd, uint32_t event_mask, uint32_t data) const;
@@ -70,8 +71,6 @@ public:
 private:
     epoll(const epoll &other);
     const epoll &operator=(const epoll &other) const;
-    
-    void ctl(int op, int fd, struct epoll_event *ev) const;
 };
 
 }

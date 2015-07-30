@@ -177,7 +177,7 @@ void epoll::mod(int fd, uint32_t event_mask, void *data) const
 
 void epoll::del(int fd) const
 {
-    ctl(EPOLL_CTL_DEL, fd, nullptr);
+    ctl(EPOLL_CTL_DEL, fd);
 }
 
 int epoll::wait(epoll_event *events, int size, int timeout) const

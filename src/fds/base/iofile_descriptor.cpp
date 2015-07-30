@@ -68,4 +68,25 @@ size_t iofile_descriptor::write(const char *buffer, size_t size) const
     return static_cast<size_t>(n);
 }
 
+size_t iofile_descriptor::pread(char *buffer, size_t size, size_t off) const
+{
+    auto n = ::pread(_fd, buffer, size, static_cast<off_t>(off));
+    if (n < 0)
+        throw_system_error(tag, "pread()");
+    
+    return static_cast<size_t>(n);
+}
+
+size_t iofile_descriptor::pwrite(const char *buffer, 
+                                 size_t size, 
+                                 size_t off) const
+{
+    auto n = ::pwrite(_fd, buffer, size, static_cast<off_t>(off));
+    if (n < 0)
+        throw_system_error(tag, "pwrite()");
+    
+    return static_cast<size_t>(n);
+}
+
+
 }

@@ -27,15 +27,31 @@
 
 #include <iostream>
 #include <vector>
+#include <functional>
 
 #include <fdcpp/easy/fdpass.hpp>
+#include <fdcpp/easy/unix_socket.hpp>
 #include <fdcpp/fds/memfd.hpp>
 #include <fdcpp/fds/eventfd.hpp>
 
 #include "util/macros.hpp"
 
 static const char *path = "/tmp/.easy_fdpass_test.sock";
-const int nfds = 1;
+const int nfds = 100;
+
+void my_fork(std::function<void()> parent, std::function<void()> child)
+{
+    auto pid = fork();
+    ASSERT(pid >= 0, "fork() failed");
+    
+    if (pid > 0) {
+        parent();
+        waitpid(0, nullptr, 0);
+    } else {
+        child();
+        exit(EXIT_SUCCESS);
+    }
+}
 
 void sender_multiple()
 {
@@ -71,20 +87,6 @@ void receiver_multiple()
         ASSERT(x < 0, "descriptors inside vector should have been moved");
 }
 
-void test_multiple()
-{
-    auto pid = fork();
-    ASSERT(pid >= 0, "fork() failed");
-    
-    if (pid > 0) {
-        receiver_multiple();
-        waitpid(0, nullptr, 0);
-    } else {
-        sender_multiple();
-        exit(EXIT_SUCCESS);
-    }
-}
-
 void receiver_single()
 {
     auto v = fd::easy::fdpass(path).recv();
@@ -95,27 +97,48 @@ void receiver_single()
 void sender_single()
 {
     auto memfd = fd::memfd("easy_fdpass_test");
-    
     memfd.ftruncate(128);
-    
-    std::cout << "Sending: " << memfd << '\n';
     
     usleep(100 * 1000);   
     fd::easy::fdpass(path).send(memfd);
 }
 
+void test_multiple()
+{
+    my_fork(&receiver_multiple, &sender_multiple);
+}
+
 void test_single()
 {
-    auto pid = fork();
-    ASSERT(pid >= 0, "fork() failed");
+    my_fork(&receiver_single, &sender_single);
+}
+
+void static_recv()
+{
+    unlink(path);
     
-    if (pid > 0) {
-        receiver_single();
-        waitpid(0, nullptr, 0);
-    } else {
-        sender_single();
-        exit(EXIT_SUCCESS);
-    }
+    auto sock = fd::easy::unix_socket::server(path).accept();
+    
+    auto v = fd::easy::fdpass::recv(sock);
+    
+    ASSERT(v.size() == nfds, "wrong vector size");
+}
+
+void static_send()
+{
+    std::vector<fd::eventfd> v;
+    
+    for (int i = 0; i < nfds; ++i)
+        v.push_back(fd::eventfd());
+    
+    auto sock = fd::easy::unix_socket::client(path);
+    
+    fd::easy::fdpass::send(sock, v.begin(), v.end());
+}
+
+void test_static_usage()
+{
+    my_fork(&static_recv, &static_send);
 }
 
 int main(int argc, char *argv[])
@@ -123,11 +146,9 @@ int main(int argc, char *argv[])
     (void) argc;
     (void) argv;
 
-    std::cout << "1\n";
     test_multiple();
-    std::cout << "2\n";
     test_single();
-    std::cout << "3\n";
+    test_static_usage();
     
     std::cout << "Ok\n";
     

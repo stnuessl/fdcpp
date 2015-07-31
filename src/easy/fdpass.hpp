@@ -27,7 +27,6 @@
 
 #include <string>
 #include <vector>
-#include <cstdio>
 
 #include <fds/base/descriptor.hpp>
 #include <fds/socket.hpp>
@@ -45,9 +44,14 @@ public:
     
     fdpass &operator=(fdpass &&other) = default;
     
-    template<typename iterator> void send(iterator begin, iterator end);
+    template<typename iter> 
+    static void send(const socket &sock, iter begin, iter end);
+    template<typename iter> void send(iter begin, iter end);
+    
+    static void send(const socket &sock, const descriptor &fd);
     void send(const descriptor &fd);
     
+    static std::vector<descriptor> recv(const socket &sock);
     std::vector<descriptor> recv();
 private:
     static constexpr long MAX_BATCH_SIZE = 10;
@@ -57,24 +61,15 @@ private:
     bool _ready;
 };
 
-template<typename iterator>
-void fdpass::send(iterator begin, iterator end)
+
+
+template<typename iter> 
+void fdpass::send(const socket &sock, iter begin, iter end)
 {
     struct msghdr msg;
     struct iovec iov;
     char buf[CMSG_SPACE(MAX_BATCH_SIZE * sizeof(int))];
-    
-    if (!_ready) {
-        struct sockaddr_un addr;
-        
-        addr.sun_family = AF_UNIX;
-        *stpncpy(addr.sun_path, _path.c_str(), sizeof(addr.sun_path)) = '\0';
-        
-        _socket.connect(addr);
-        
-        _ready = true;
-    }
-    
+
     auto size = static_cast<size_t>(std::abs(std::distance(begin, end)));
     
     iov.iov_base = (void *) &size;
@@ -95,17 +90,34 @@ void fdpass::send(iterator begin, iterator end)
     while (begin != end) {
         auto dist = std::abs(std::distance(begin, end));
         auto batch_size = std::min(dist, MAX_BATCH_SIZE);
+        auto bytes = batch_size * sizeof(int);
         
-        msg.msg_controllen = CMSG_SPACE(batch_size * sizeof(int));
-        cmsg->cmsg_len = msg.msg_controllen;
+        msg.msg_controllen = CMSG_SPACE(bytes);
+        cmsg->cmsg_len = CMSG_LEN(bytes);
         
         int *ptr = (int *) CMSG_DATA(cmsg);
         
         while (batch_size--)
             *ptr++ = *begin++;
-
-        _socket.sendmsg(msg, MSG_NOSIGNAL);
+        
+        sock.sendmsg(msg, MSG_NOSIGNAL);
     }
+}
+
+template<typename iter> void fdpass::send(iter begin, iter end)
+{
+    if (!_ready) {
+        struct sockaddr_un addr;
+        
+        addr.sun_family = AF_UNIX;
+        *stpncpy(addr.sun_path, _path.c_str(), sizeof(addr.sun_path)) = '\0';
+        
+        _socket.connect(addr);
+        
+        _ready = true;
+    }
+    
+    fdpass::send(_socket, begin, end);
 }
 
 }

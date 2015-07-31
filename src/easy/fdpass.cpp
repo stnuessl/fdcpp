@@ -43,19 +43,22 @@ fdpass::fdpass(const std::string &path)
     : fdpass(path.c_str())
 {
 }
-#include <cstdio>
-void fdpass::send(const descriptor &fd)
+
+void fdpass::send(const socket &sock, const descriptor &fd)
 {
     std::vector<int> v = { fd };
     
-    
-    std::printf("Got: %d\n", v[0]);
-    
+    fdpass::send(sock, v.begin(), v.end());
+}
+
+void fdpass::send(const descriptor &fd)
+{
+    std::vector<int> v = { fd };
+
     send(v.begin(), v.end());
 }
 
-
-std::vector<descriptor> fdpass::recv()
+std::vector< descriptor > fdpass::recv(const socket &sock)
 {
     std::vector<descriptor> v;
     struct msghdr msg;
@@ -63,18 +66,6 @@ std::vector<descriptor> fdpass::recv()
     struct iovec iov;
     size_t size;
     char buf[CMSG_SPACE(MAX_BATCH_SIZE * sizeof(int))];
-    
-    if (!_ready) {
-        struct sockaddr_un addr;
-        
-        addr.sun_family = AF_UNIX;
-        *stpncpy(addr.sun_path, _path.c_str(), sizeof(addr.sun_path)) = '\0';
-        
-        unlink(addr.sun_path);
-        _socket.bind(addr);
-        
-        _ready = true;
-    }
     
     iov.iov_base = (void *) &size;
     iov.iov_len = sizeof(size);
@@ -87,20 +78,37 @@ std::vector<descriptor> fdpass::recv()
     msg.msg_namelen = 0;
     
     do {
-        _socket.recvmsg(msg, MSG_NOSIGNAL);
+        sock.recvmsg(msg, MSG_NOSIGNAL);
         
         long diff = size - v.size();
         auto batch_size = std::min(diff, MAX_BATCH_SIZE);
         
         cmsg = CMSG_FIRSTHDR(&msg);
         int *ptr = (int *) CMSG_DATA(cmsg);
-
+        
         while (batch_size--)
             v.push_back(descriptor(*ptr++));
-
+        
     } while(v.size() != size);
-
+    
     return v;
+}
+
+std::vector<descriptor> fdpass::recv()
+{
+    if (!_ready) {
+        struct sockaddr_un addr;
+        
+        addr.sun_family = AF_UNIX;
+        *stpncpy(addr.sun_path, _path.c_str(), sizeof(addr.sun_path)) = '\0';
+        
+        unlink(addr.sun_path);
+        _socket.bind(addr);
+        
+        _ready = true;
+    }
+    
+    return fdpass::recv(_socket);
 }
 
 

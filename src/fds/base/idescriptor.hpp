@@ -22,81 +22,28 @@
  * SOFTWARE.
  */
 
-#include <unistd.h>
-#include <fcntl.h>
+#ifndef _FDCPP_IDESCRIPTOR_HPP_
+#define _FDCPP_IDESCRIPTOR_HPP_
 
-#include <utility>
-
-#include <fds/base/file_descriptor.hpp>
-
-#include <util/throw.hpp>
-
-static const char *tag = "file_descriptor";
+#include <fds/base/descriptor.hpp>
 
 namespace fd {
 
-file_descriptor::file_descriptor(int fd)
-    : _fd(fd)
-{
-}
-
-
-file_descriptor::file_descriptor(file_descriptor &&other)
-    : _fd(other._fd)
-{
-    other._fd = -1;
-}
-
-file_descriptor::~file_descriptor()
-{
-    if (_fd >= 0)
-        ::close(_fd);
-}
-
-file_descriptor &file_descriptor::operator=(file_descriptor &&other)
-{
-    std::swap(_fd, other._fd);
+class idescriptor : public descriptor {
+public:
+    explicit idescriptor(int fd);
+    explicit idescriptor(descriptor &&other);
+    idescriptor(const idescriptor &other) = delete;
+    idescriptor(idescriptor &&other) = default;
     
-    return *this;
-}
-
-file_descriptor::operator int() const
-{
-    return _fd;
-}
-
-
-int file_descriptor::fcntl(int cmd)
-{
-    int ret = ::fcntl(_fd, cmd);
-    if (ret < 0)
-        throw_system_error(tag, "fcntl()");
+    virtual ~idescriptor() = default;
     
-    return ret;
-}
-
-int file_descriptor::fcntl(int cmd, int arg)
-{
-    int ret = ::fcntl(_fd, cmd, arg);
-    if (ret < 0)
-        throw_system_error(tag, "fcntl()");
+    idescriptor &operator=(const idescriptor &other) = delete;
+    idescriptor &operator=(idescriptor &&other) = default;
     
-    return ret;
-}
-
-int file_descriptor::fcntl(int cmd, struct flock *arg)
-{
-    int ret = ::fcntl(_fd, cmd, arg);
-    if (ret < 0)
-        throw_system_error(tag, "fcntl()");
-    
-    return ret;
-}
-
-int file_descriptor::fd() const
-{
-    return _fd;
-}
-
+    size_t read(char *buffer, size_t size) const;
+};
 
 }
+
+#endif /* _FDCPP_IDESCRIPTOR_HPP_ */

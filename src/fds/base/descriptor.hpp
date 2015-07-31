@@ -22,45 +22,38 @@
  * SOFTWARE.
  */
 
-#include <unistd.h>
 
-#include <utility>
+#ifndef _FDCPP_DESCRIPTOR_HPP_
+#define _FDCPP_DESCRIPTOR_HPP_
 
-#include <fds/base/ifile_descriptor.hpp>
-#include <util/throw.hpp>
+#include <fcntl.h>
 
-static const char *tag = "ifile_descriptor";
+#include <cstddef>
 
 namespace fd {
 
-ifile_descriptor::ifile_descriptor(int fd)
-    : file_descriptor(fd)
-{
-}
-
-ifile_descriptor::ifile_descriptor(ifile_descriptor &&other)
-    : file_descriptor(std::move(other))
-{
-}
-
-ifile_descriptor &ifile_descriptor::operator=(ifile_descriptor &&other)
-{
-    file_descriptor::operator=(std::move(other));
+class descriptor {
+public:
+    explicit descriptor(int fd);
+    descriptor(const descriptor &other) = delete;
+    descriptor(descriptor &&other);
     
-    return *this;
-}
-
-size_t ifile_descriptor::read(char *buffer, size_t size) const
-{
-    auto n = ::read(_fd, buffer, size);
-    if (n < 0)
-        throw_system_error(tag, "read()");
+    virtual ~descriptor();
     
-    return static_cast<size_t>(n);
+    descriptor &operator=(const descriptor &other) = delete;
+    descriptor &operator=(descriptor &&other);
+    
+    operator int() const;
+    
+    int fcntl(int cmd);
+    int fcntl(int cmd, int arg);
+    int fcntl(int cmd, struct flock *fl);
+    
+    int fd() const;
+protected:
+    int _fd;
+};
+
 }
 
-
-
-
-
-}
+#endif /* _FDCPP_DESCRIPTOR_HPP_ */

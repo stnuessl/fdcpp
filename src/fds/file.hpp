@@ -25,26 +25,29 @@
 #ifndef _FDCPP_FILE_HPP_
 #define _FDCPP_FILE_HPP_
 
+#include <sys/statvfs.h>
+
 #include <string>
 
-#include <fds/base/iofile_descriptor.hpp>
+#include <fds/base/iodescriptor.hpp>
 
 namespace fd {
 
-class file : public iofile_descriptor {
+class file : public iodescriptor {
 public:
     explicit file(const char *path, int flags = 0);
     explicit file(const char *path, int flags, mode_t mode);
     explicit file(const std::string &path, int flags = 0);
     explicit file(const std::string &path, int flags, mode_t mode);
-    file(file &&other);
+    explicit file(descriptor &&other);
+    file(file &&other) = default;
     
     virtual ~file() = default;
     
     file dup() const;
     void dup2(const file &other) const;
     
-    file &operator=(file &&other);
+    file &operator=(file &&other) = default;
     
     size_t lseek(off_t offset, int whence) const;
     
@@ -55,6 +58,7 @@ public:
     void fsync() const;
     long fpathconf(int name) const;
     void fdatasync() const;
+    void fstatvfs(struct statvfs &svfs) const;
     
 private:
     file(const file &other);

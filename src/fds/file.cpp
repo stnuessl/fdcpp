@@ -37,41 +37,41 @@ static const char *tag = "file";
 namespace fd {
 
 file::file(const char *path, int flags)
-    : iofile_descriptor(open(path, flags))
-{
-
-}
-
-
-file::file(const char *path, int flags, mode_t mode)
-    : iofile_descriptor(open(path, flags, mode))
-{
-
-}
-
-file::file(const file &other)
-    : iofile_descriptor(other._fd)
+    : iodescriptor(open(path, flags))
 {
     if (_fd < 0)
-        throw_system_error(tag, "dup()");
+        throw_system_error(tag, "file()");
+}
+
+file::file(const char *path, int flags, mode_t mode)
+    : iodescriptor(open(path, flags, mode))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "file()");
 }
 
 file::file(const std::string &path, int flags)
     : file(path.c_str(), flags)
 {
-
 }
-
 
 file::file(const std::string &path, int flags, mode_t mode)
     : file(path.c_str(), flags, mode)
 {
-
 }
 
-file::file(file &&other)
-    : iofile_descriptor(std::move(other))
+file::file(descriptor &&other)
+    : iodescriptor(std::move(other))
 {
+    if (_fd < 0)
+        throw_system_error(tag, "file()", EBADF);
+}
+
+file::file(const file &other)
+: iodescriptor(other._fd)
+{
+    if (_fd < 0)
+        throw_system_error(tag, "dup()");
 }
 
 const file &file::operator=(const file &other) const
@@ -80,14 +80,6 @@ const file &file::operator=(const file &other) const
     if (err < 0)
         throw_system_error(tag, "dup2()");
     
-    return *this;
-}
-
-
-file &file::operator=(file &&other)
-{
-    iofile_descriptor::operator=(std::move(other));
-
     return *this;
 }
 
@@ -163,6 +155,12 @@ void file::fdatasync() const
         throw_system_error(tag, "fdatasync()");
 }
 
+void file::fstatvfs(struct statvfs &svfs) const
+{
+    auto err = ::fstatvfs(_fd, &svfs);
+    if (err < 0)
+        throw_system_error(tag, "fstatvfs()");
+}
 
 
 }

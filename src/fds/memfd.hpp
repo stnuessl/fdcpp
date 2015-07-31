@@ -29,22 +29,23 @@
 
 #include <string>
 
-#include <fds/base/iofile_descriptor.hpp>
+#include <fds/base/iodescriptor.hpp>
 
 namespace fd {
 
-class memfd : public iofile_descriptor {
+class memfd : public iodescriptor {
 public:
     explicit memfd(const char *name, int flags = 0);
     explicit memfd(const std::string &name, int flags = 0);
-    memfd(memfd &&other);
+    explicit memfd(descriptor &&other);
+    memfd(memfd &&other) = default;
     
     memfd dup() const;
     void dup2(const memfd &other) const;
     
     virtual ~memfd() = default;
     
-    memfd &operator=(memfd &&other);
+    memfd &operator=(memfd &&other) = default;
     
     void ftruncate(size_t size = 0) const;
     void fstat(struct stat &st) const;

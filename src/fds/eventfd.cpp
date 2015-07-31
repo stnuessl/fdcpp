@@ -34,23 +34,24 @@ static const char *tag = "eventfd";
 namespace fd {
 
 eventfd::eventfd(unsigned int initval, int flags)
-    : iofile_descriptor(::eventfd(initval, flags))
+    : iodescriptor(::eventfd(initval, flags))
 {
     if (_fd < 0)
         throw_system_error(tag, "eventfd()");
 }
 
+eventfd::eventfd(descriptor &&other)
+    : iodescriptor(std::move(other))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "eventfd()", EBADF);
+}
+
 eventfd::eventfd(const eventfd &other)
-    : iofile_descriptor(::dup(other._fd))
+    : iodescriptor(::dup(other._fd))
 {
     if (_fd < 0)
         throw_system_error(tag, "dup()");
-}
-
-
-eventfd::eventfd(eventfd &&other)
-    : iofile_descriptor(std::move(other))
-{
 }
 
 const eventfd &eventfd::operator=(const eventfd &other) const
@@ -58,13 +59,6 @@ const eventfd &eventfd::operator=(const eventfd &other) const
     int err = ::dup2(other._fd, _fd);
     if (err < 0)
         throw_system_error(tag, "dup2()");
-    
-    return *this;
-}
-
-eventfd &eventfd::operator=(eventfd &&other)
-{
-    iofile_descriptor::operator=(std::move(other));
     
     return *this;
 }
@@ -87,7 +81,7 @@ uint64_t eventfd::read() const
     n = 0;
     
     do {
-        n += iofile_descriptor::read(((char *) &val) + n, sizeof(val) - n);
+        n += iodescriptor::read(((char *) &val) + n, sizeof(val) - n);
     } while (n != sizeof (val));
     
     return val;
@@ -98,7 +92,7 @@ void eventfd::write(uint64_t val) const
     size_t n = 0;
     
     do {
-        n += iofile_descriptor::write(((char *) &val) + n, sizeof(val) - n);
+        n += iodescriptor::write(((char *) &val) + n, sizeof(val) - n);
     } while (n != sizeof(val));
 }
 

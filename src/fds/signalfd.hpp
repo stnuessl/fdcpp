@@ -28,22 +28,23 @@
 #include <signal.h>
 #include <sys/signalfd.h>
 
-#include <fds/base/ifile_descriptor.hpp>
+#include <fds/base/idescriptor.hpp>
 
 namespace fd {
 
-class signalfd : public ifile_descriptor {
+class signalfd : public idescriptor {
 public:
     explicit signalfd(const sigset_t &mask, int flags = 0);
-    signalfd(signalfd &&other);
+    explicit signalfd(descriptor &&other);
+    signalfd(signalfd &&other) = default;
     
     virtual ~signalfd() = default;
+    
+    signalfd &operator=(signalfd &&other) = default;
     
     void setmask(const sigset_t &mask) const;
     signalfd dup() const;
     void dup2(const signalfd &other) const;
-    
-    signalfd &operator=(signalfd &&other);
     
     void read(struct signalfd_siginfo *info) const;
 private:

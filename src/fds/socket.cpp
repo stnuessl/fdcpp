@@ -36,25 +36,31 @@ static const char *tag = "socket";
 namespace fd {
 
 socket::socket(int domain, int type, int protocol)
-    : iofile_descriptor(::socket(domain, type, protocol))
+    : iodescriptor(::socket(domain, type, protocol))
 {
+    if (_fd < 0)
+        throw_system_error(tag, "socket()");
 }
 
 socket::socket(int fd)
-    : iofile_descriptor(fd)
+    : iodescriptor(fd)
 {
+    if (_fd < 0)
+        throw_system_error(tag, "socket()", EBADF);
+}
+
+socket::socket(descriptor &&other)
+    : iodescriptor(std::move(other))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "socket()", EBADF);
 }
 
 socket::socket(const socket &other)
-    : iofile_descriptor(::dup(other._fd))
+    : iodescriptor(::dup(other._fd))
 {
     if (_fd < 0)
         throw_system_error(tag, "dup()");
-}
-
-socket::socket(socket &&other)
-    : iofile_descriptor(std::move(other))
-{
 }
 
 const socket &socket::operator=(const socket &other) const
@@ -62,13 +68,6 @@ const socket &socket::operator=(const socket &other) const
     int err = ::dup2(other._fd, _fd);
     if (err < 0)
         throw_system_error(tag, "dup2()");
-    
-    return *this;
-}
-
-socket &socket::operator=(socket &&other)
-{
-    iofile_descriptor::operator=(std::move(other));
     
     return *this;
 }

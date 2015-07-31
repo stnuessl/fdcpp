@@ -40,7 +40,7 @@ socket client(const char *path)
     struct sockaddr_un addr;
     
     addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, path, sizeof(addr.sun_path));
+    *stpncpy(addr.sun_path, path, sizeof(addr.sun_path)) = '\0';
     
     auto socket = fd::socket(AF_UNIX, SOCK_STREAM);
     socket.connect(addr);
@@ -58,7 +58,7 @@ socket server(const char *path, int backlog)
     struct sockaddr_un addr;
     
     addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, path, sizeof(addr.sun_path));
+    *stpncpy(addr.sun_path, path, sizeof(addr.sun_path)) = '\0';
     
     auto socket = fd::socket(AF_UNIX, SOCK_STREAM);
     

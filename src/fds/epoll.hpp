@@ -27,18 +27,19 @@
 
 #include <sys/epoll.h>
 
-#include <fds/base/file_descriptor.hpp>
+#include <fds/base/descriptor.hpp>
 
 namespace fd {
 
-class epoll : public file_descriptor {
+class epoll : public descriptor {
 public:
     explicit epoll(int flags = 0);
-    epoll(epoll &&other);
+    explicit epoll(descriptor &&other);
+    epoll(epoll &&other) = default;
     
     virtual ~epoll() = default;
     
-    epoll &operator=(epoll &&other);
+    epoll &operator=(epoll &&other) = default;
     
     epoll dup() const;
     void dup2(const epoll &other) const;

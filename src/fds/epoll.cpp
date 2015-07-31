@@ -34,21 +34,24 @@ static const char *tag = "epoll";
 namespace fd {
 
 epoll::epoll(int flags)
-    : file_descriptor(epoll_create1(flags))
+    : descriptor(epoll_create1(flags))
 {
+    if (_fd < 0)
+        throw_system_error(tag, "epoll()");
 }
 
 epoll::epoll(const epoll &other)
-    : file_descriptor(::dup(other._fd))
+    : descriptor(::dup(other._fd))
 {
     if (_fd < 0)
         throw_system_error(tag, "dup()");
 }
 
-epoll::epoll(epoll &&other)
-    : file_descriptor(std::move(other._fd))
+epoll::epoll(descriptor &&other)
+    : descriptor(std::move(other))
 {
-    other._fd = -1;
+    if (_fd < 0)
+        throw_system_error(tag, "epoll()", EBADF);
 }
 
 const epoll &epoll::operator=(const epoll &other) const
@@ -56,13 +59,6 @@ const epoll &epoll::operator=(const epoll &other) const
     int err = ::dup2(other._fd, _fd);
     if (err < 0)
         throw_system_error(tag, "dup2()");
-    
-    return *this;
-}
-
-epoll &epoll::operator=(epoll &&other)
-{
-    file_descriptor::operator=(std::move(other));
     
     return *this;
 }

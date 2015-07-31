@@ -32,20 +32,24 @@ static const char *tag = "timerfd";
 namespace fd {
 
 timerfd::timerfd(clockid_t clockid, int flags)
-    : ifile_descriptor(timerfd_create(clockid, flags))
+    : idescriptor(timerfd_create(clockid, flags))
 {
+    if (_fd < 0)
+        throw_system_error(tag, "timerfd()");
+}
+
+timerfd::timerfd(descriptor &&other)
+    : idescriptor(std::move(other))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "timerfd()", EBADF);
 }
 
 timerfd::timerfd(const timerfd &other)
-    : ifile_descriptor(::dup(other._fd))
+    : idescriptor(::dup(other._fd))
 {
     if (_fd < 0)
         throw_system_error(tag, "dup()");
-}
-
-timerfd::timerfd(timerfd &&other)
-    : ifile_descriptor(std::move(other))
-{
 }
 
 const timerfd &timerfd::operator=(const timerfd &other) const
@@ -53,13 +57,6 @@ const timerfd &timerfd::operator=(const timerfd &other) const
     int err = ::dup2(other._fd, _fd);
     if (err < 0)
         throw_system_error(tag, "dup2()");
-    
-    return *this;
-}
-
-timerfd &timerfd::operator=(timerfd &&other)
-{
-    ifile_descriptor::operator=(std::move(other));
     
     return *this;
 }
@@ -108,7 +105,7 @@ uint64_t timerfd::read() const
     ssize_t n = 0;
 
     do {
-        n += ifile_descriptor::read(((char *) &val) + n, sizeof(val) - n);
+        n += idescriptor::read(((char *) &val) + n, sizeof(val) - n);
     } while (n != sizeof(val));
     
     return val;

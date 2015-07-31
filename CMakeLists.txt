@@ -23,9 +23,10 @@ set(SRC
     src/easy/unix_socket.cpp
     src/easy/buffered_socket.cpp
     src/easy/mmap.cpp
-    src/fds/base/file_descriptor.cpp
-    src/fds/base/ifile_descriptor.cpp
-    src/fds/base/iofile_descriptor.cpp
+    src/easy/fdpass.cpp
+    src/fds/base/descriptor.cpp
+    src/fds/base/idescriptor.cpp
+    src/fds/base/iodescriptor.cpp
     src/fds/epoll.cpp
     src/fds/eventfd.cpp
     src/fds/file.cpp
@@ -38,9 +39,9 @@ set(SRC
 )
 
 set(HDR_FD_BASE
-    src/fds/base/file_descriptor.hpp
-    src/fds/base/ifile_descriptor.hpp
-    src/fds/base/iofile_descriptor.hpp
+    src/fds/base/descriptor.hpp
+    src/fds/base/idescriptor.hpp
+    src/fds/base/iodescriptor.hpp
 )
 
 set(HDR_FD
@@ -61,6 +62,7 @@ set(HDR_EASY
     src/easy/unix_socket.hpp
     src/easy/buffered_socket.hpp
     src/easy/mmap.hpp
+    src/easy/fdpass.hpp
 )
 
 include_directories(

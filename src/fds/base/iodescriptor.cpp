@@ -26,31 +26,24 @@
 
 #include <utility>
 
-#include <fds/base/iofile_descriptor.hpp>
+#include <fds/base/iodescriptor.hpp>
 #include <util/throw.hpp>
 
-static const char *tag = "iofile_descriptor";
+static const char *tag = "iodescriptor";
 
 namespace fd {
 
-iofile_descriptor::iofile_descriptor(int fd)
-    : file_descriptor(fd)
+iodescriptor::iodescriptor(int fd)
+    : descriptor(fd)
 {
 }
 
-iofile_descriptor::iofile_descriptor(iofile_descriptor &&other)
-    : file_descriptor(std::move(other))
+iodescriptor::iodescriptor(descriptor &&other)
+    : descriptor(std::move(other))
 {
 }
 
-iofile_descriptor &iofile_descriptor::operator=(iofile_descriptor &&other)
-{
-    file_descriptor::operator=(std::move(other));
-    
-    return *this;
-}
-
-size_t iofile_descriptor::read(char *buffer, size_t size) const
+size_t iodescriptor::read(char *buffer, size_t size) const
 {
     auto n = ::read(_fd, buffer, size);
     if (n < 0)
@@ -59,7 +52,7 @@ size_t iofile_descriptor::read(char *buffer, size_t size) const
     return static_cast<size_t>(n);
 }
 
-size_t iofile_descriptor::write(const char *buffer, size_t size) const
+size_t iodescriptor::write(const char *buffer, size_t size) const
 {
     auto n = ::write(_fd, buffer, size);
     if (n < 0)
@@ -68,7 +61,7 @@ size_t iofile_descriptor::write(const char *buffer, size_t size) const
     return static_cast<size_t>(n);
 }
 
-size_t iofile_descriptor::pread(char *buffer, size_t size, size_t off) const
+size_t iodescriptor::pread(char *buffer, size_t size, size_t off) const
 {
     auto n = ::pread(_fd, buffer, size, static_cast<off_t>(off));
     if (n < 0)
@@ -77,7 +70,7 @@ size_t iofile_descriptor::pread(char *buffer, size_t size, size_t off) const
     return static_cast<size_t>(n);
 }
 
-size_t iofile_descriptor::pwrite(const char *buffer, 
+size_t iodescriptor::pwrite(const char *buffer, 
                                  size_t size, 
                                  size_t off) const
 {

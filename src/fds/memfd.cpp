@@ -41,7 +41,7 @@ static int memfd_create(const char *name, int flags)
 namespace fd {
 
 memfd::memfd(const char *name, int flags)
-    : iofile_descriptor(memfd_create(name, flags))
+    : iodescriptor(memfd_create(name, flags))
 {
     if (_fd < 0)
         throw_system_error(tag, "memfd()");
@@ -52,16 +52,19 @@ memfd::memfd(const std::string &name, int flags)
 {
 }
 
+memfd::memfd(descriptor &&other)
+    : iodescriptor(std::move(other))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "memfd()", EBADF);
+}
+
+
 memfd::memfd(const memfd &other)
-: iofile_descriptor(::dup(other._fd))
+: iodescriptor(::dup(other._fd))
 {
     if (_fd < 0)
         throw_system_error(tag, "dup()");
-}
-
-memfd::memfd(memfd &&other)
-    : iofile_descriptor(std::move(other))
-{
 }
 
 const memfd &memfd::operator=(const memfd &other) const
@@ -69,13 +72,6 @@ const memfd &memfd::operator=(const memfd &other) const
     int err = ::dup2(other._fd, _fd);
     if (err < 0)
         throw_system_error(tag, "dup2()");
-    
-    return *this;
-}
-
-memfd &memfd::operator=(memfd &&other)
-{
-    iofile_descriptor::operator=(std::move(other));
     
     return *this;
 }

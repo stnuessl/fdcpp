@@ -32,18 +32,19 @@
 #include <string>
 #include <cstdint>
 
-#include <fds/base/iofile_descriptor.hpp>
+#include <fds/base/iodescriptor.hpp>
 
 namespace fd {
 
-class socket : public iofile_descriptor {
+class socket : public iodescriptor {
 public:    
     explicit socket(int domain, int type, int protocol = 0);
-    socket(socket &&other);
+    explicit socket(descriptor &&other);
+    socket(socket &&other) = default;
     
     virtual ~socket() = default;
     
-    socket &operator=(socket &&other);
+    socket &operator=(socket &&other) = default;
     
     socket dup() const;
     void dup2(const socket &other) const;

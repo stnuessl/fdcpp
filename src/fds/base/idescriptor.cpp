@@ -22,31 +22,38 @@
  * SOFTWARE.
  */
 
-#ifndef _FD_IOFILE_DESCRIPTOR_HPP_
-#define _FD_IOFILE_DESCRIPTOR_HPP_
+#include <unistd.h>
 
-#include <fds/base/file_descriptor.hpp>
+#include <utility>
+
+#include <fds/base/idescriptor.hpp>
+#include <util/throw.hpp>
+
+static const char *tag = "idescriptor";
 
 namespace fd {
 
-class iofile_descriptor : public file_descriptor {
-public:
-    explicit iofile_descriptor(int fd);
-    iofile_descriptor(const iofile_descriptor &other) = delete;
-    iofile_descriptor(iofile_descriptor &&other);
-    
-    virtual ~iofile_descriptor() = default;
-    
-    iofile_descriptor &operator=(const iofile_descriptor &other) = delete;
-    iofile_descriptor &operator=(iofile_descriptor &&other);
-    
-    size_t read(char *buffer, size_t size) const;
-    size_t write(const char *buffer, size_t size) const;
-    
-    size_t pread(char *buffer, size_t size, size_t off) const;
-    size_t pwrite(const char *buffer, size_t size, size_t off) const;
-};
-
+idescriptor::idescriptor(int fd)
+    : descriptor(fd)
+{
 }
 
-#endif /* _FD_IOFILE_DESCRIPTOR_HPP_ */
+idescriptor::idescriptor(descriptor &&other)
+    : descriptor(std::move(other))
+{
+}
+
+size_t idescriptor::read(char *buffer, size_t size) const
+{
+    auto n = ::read(_fd, buffer, size);
+    if (n < 0)
+        throw_system_error(tag, "read()");
+    
+    return static_cast<size_t>(n);
+}
+
+
+
+
+
+}

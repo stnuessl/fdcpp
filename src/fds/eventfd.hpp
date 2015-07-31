@@ -28,19 +28,20 @@
 #include <cstdint>
 #include <sys/eventfd.h>
 
-#include <fds/base/iofile_descriptor.hpp>
+#include <fds/base/iodescriptor.hpp>
 
 namespace fd {
 
-class eventfd : public iofile_descriptor {
+class eventfd : public iodescriptor {
 public:
     
     explicit eventfd(unsigned int initval = 0, int flags = 0);
-    eventfd(eventfd &&other);
+    explicit eventfd(descriptor &&other);
+    eventfd(eventfd &&other) = default;
     
     virtual ~eventfd() = default;
     
-    eventfd &operator=(eventfd &&other);
+    eventfd &operator=(eventfd &&other) = default;
     
     eventfd dup() const;
     void dup2(const eventfd &other) const;

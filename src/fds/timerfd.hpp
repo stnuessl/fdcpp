@@ -31,21 +31,22 @@
 #include <utility>
 #include <cstdint>
 
-#include <fds/base/ifile_descriptor.hpp>
+#include <fds/base/idescriptor.hpp>
 
 namespace fd {
 
-class timerfd : public ifile_descriptor {
+class timerfd : public idescriptor {
 public:
     explicit timerfd(clockid_t clockid = CLOCK_MONOTONIC, int flags = 0);
-    timerfd(timerfd &&other);
+    explicit timerfd(descriptor &&other);
+    timerfd(timerfd &&other) = default;
     
     virtual ~timerfd() = default;
     
+    timerfd &operator=(timerfd &&other) = default;
+    
     timerfd dup() const;
     void dup2(const timerfd &other) const;
-    
-    timerfd &operator=(timerfd &&other);
     
     void gettime(struct itimerspec &val) const;
     

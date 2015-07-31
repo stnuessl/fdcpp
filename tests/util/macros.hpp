@@ -25,7 +25,9 @@
 #ifndef _FDCPP_MACROS_HPP_
 #define _FDCPP_MACROS_HPP_
 
-#include <stdexcept>
+#include <cstdlib>
+
+#include <iostream>
 
 #define SYMBOL(x) #x
 #define SYMBOL2(x) SYMBOL(x)
@@ -33,7 +35,14 @@
 #define __LINE_STR__ SYMBOL2(__LINE__)
 #define __FILE_POSITION__ __FILE__ ":" __LINE_STR__
 
-#define ASSERT(x)                                                              \
-    if (!(x)) throw std::logic_error(__FILE_POSITION__)
+#define ASSERT(x, msg)                                                         \
+    do {                                                                       \
+        if (!(x)) {                                                            \
+            std::cerr << "** ASSERTION FAILURE: " << SYMBOL((x))               \
+                      << " failed at " << __FILE_POSITION__ << " - " << msg    \
+                      << "\n";                                                 \
+            std::abort();                                                      \
+        }                                                                      \
+    } while(0)
 
 #endif /* _FDCPP_MACROS_HPP_ */

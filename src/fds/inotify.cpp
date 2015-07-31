@@ -35,22 +35,24 @@ static const char *tag = "inotify";
 namespace fd {
 
 inotify::inotify(int flags)
-    : ifile_descriptor(inotify_init1(flags))
+    : idescriptor(inotify_init1(flags))
 {
     if (_fd < 0)
         throw_system_error(tag, "inotify()");
 }
 
+inotify::inotify(descriptor &&other)
+    : idescriptor(std::move(other))
+{
+    if (_fd < 0)
+        throw_system_error(tag, "inotify()", EBADF);
+}
+
 inotify::inotify(const inotify &other)
-    : ifile_descriptor(::dup(other._fd))
+    : idescriptor(::dup(other._fd))
 {
     if (_fd < 0)
         throw_system_error(tag, "dup()");
-}
-
-inotify::inotify(inotify &&other)
-    : ifile_descriptor(std::move(other))
-{
 }
 
 const inotify &inotify::operator=(const inotify &other) const
@@ -58,13 +60,6 @@ const inotify &inotify::operator=(const inotify &other) const
     int err = ::dup2(other._fd, _fd);
     if (err < 0)
         throw_system_error(tag, "dup2()");
-    
-    return *this;
-}
-
-inotify &inotify::operator=(inotify &&other)
-{
-    ifile_descriptor::operator=(std::move(other));
     
     return *this;
 }

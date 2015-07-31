@@ -19,6 +19,7 @@ set(TARGETS
     easy_buffered_socket_test
     easy_mmap_test
     memfd_test
+    easy_fdpass_test
 )
 
 link_directories(${CMAKE_LIBRARY_PATH})
@@ -55,6 +56,9 @@ target_link_libraries(easy_mmap_test ${LIBS})
 
 add_executable(memfd_test memfd_test.cpp)
 target_link_libraries(memfd_test ${LIBS})
+
+add_executable(easy_fdpass_test easy_fdpass_test.cpp)
+target_link_libraries(easy_fdpass_test ${LIBS})
 
 add_custom_target(tests DEPENDS ${TARGETS})
 set_target_properties(tests ${TARGETS} PROPERTIES EXCLUDE_FROM_ALL 1)

@@ -22,38 +22,32 @@
  * SOFTWARE.
  */
 
+#ifndef _FDCPP_IODESCRIPTOR_HPP_
+#define _FDCPP_IODESCRIPTOR_HPP_
 
-#ifndef _FDCPP_FILE_DESCRIPTOR_HPP_
-#define _FDCPP_FILE_DESCRIPTOR_HPP_
-
-#include <fcntl.h>
-
-#include <cstddef>
+#include <fds/base/descriptor.hpp>
 
 namespace fd {
 
-class file_descriptor {
+class iodescriptor : public descriptor {
 public:
-    explicit file_descriptor(int fd);
-    file_descriptor(const file_descriptor &other) = delete;
-    file_descriptor(file_descriptor &&other);
+    explicit iodescriptor(int fd);
+    explicit iodescriptor(descriptor &&other);
+    iodescriptor(const iodescriptor &other) = delete;
+    iodescriptor(iodescriptor &&other) = default;
     
-    virtual ~file_descriptor();
+    virtual ~iodescriptor() = default;
     
-    file_descriptor &operator=(const file_descriptor &other) = delete;
-    file_descriptor &operator=(file_descriptor &&other);
+    iodescriptor &operator=(const iodescriptor &other) = delete;
+    iodescriptor &operator=(iodescriptor &&other) = default;
     
-    operator int() const;
+    size_t read(char *buffer, size_t size) const;
+    size_t write(const char *buffer, size_t size) const;
     
-    int fcntl(int cmd);
-    int fcntl(int cmd, int arg);
-    int fcntl(int cmd, struct flock *fl);
-    
-    int fd() const;
-protected:
-    int _fd;
+    size_t pread(char *buffer, size_t size, size_t off) const;
+    size_t pwrite(const char *buffer, size_t size, size_t off) const;
 };
 
 }
 
-#endif /* _FDCPP_FILE_DESCRIPTOR_HPP_ */
+#endif /* _FDCPP_IODESCRIPTOR_HPP_ */

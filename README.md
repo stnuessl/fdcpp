@@ -187,3 +187,230 @@ fail:
     }
 }
 ```
+
+## descriptor passing
+
+The following code snippets show an example of descriptor passing via unix
+domain sockets. The first two snippets show the sender and receiver code in C.
+The last two snippets show the corresponding code in C++ with fdcpp library.
+
+### C version
+
+#### sender
+
+```c
+#include <unistd.h>         /* close(), read() */
+#include <stdlib.h>         /* exit() */
+#include <stdio.h>          /* perror() */
+#include <string.h>         /* stpncpy() */
+#include <sys/timerfd.h>    /* timerfd_create(), timerfd_settime() */
+#include <sys/socket.h>     /* socket(), connect(), bind(), etc. */
+#include <sys/un.h>         /* sockaddr_un */
+#include <time.h>           /* CLOCK_MONOTONIC */
+{
+    struct iovec iov;
+    struct msghdr msg;
+    struct cmsghdr *cmsg;
+    struct itimerspec its;
+    struct sockaddr_un addr;
+    char buf[CMSG_SPACE(sizeof(int))];
+    int tfd = -1, sock = -1, err;
+    
+    its.it_value.tv_sec = 0;
+    its.it_value.tv_nsec = 100 * 1e3;
+    its.it_interval.tv_sec = 0;
+    its.it_interval.tv_nsec = 100 * 1e3;
+    
+    tfd = timerfd_create(CLOCK_MONOTONIC, 0);
+    if (tfd < 0) {
+        perror("eventfd_create");
+        goto fail;
+    }
+    
+    err = timerfd_settime(tfd, 0, &its, NULL);
+    if (err < 0) {
+        perror("eventfd_settime");
+        goto fail;
+    }
+    
+    sock = socket(AF_UNIX, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        perror("socket");
+        goto fail;
+    }
+    
+    addr.sun_family = AF_UNIX;
+    *stpncpy(addr.sun_path, "/tmp/.unique.sock", sizeof(addr.sun_path)) = '\0';
+    
+    err = connect(sock, (struct sockaddr *) &addr, sizeof(addr));
+    if (err < 0) {
+        perror("connect");
+        goto fail;
+    }
+    
+    iov.iov_base = buf;
+    iov.iov_len = sizeof(buf);
+    
+    msg.msg_iov = &iov;
+    msg.msg_iovlen = 1;
+    msg.msg_control = buf;
+    msg.msg_controllen = sizeof(buf);
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
+    
+    cmsg = CMSG_FIRSTHDR(&msg);
+    cmsg->cmsg_level = SOL_SOCKET;
+    cmsg->cmsg_type = SCM_RIGHTS;
+    cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+    *(int *) CMSG_DATA(cmsg) = tfd;
+    
+    err = sendmsg(sock, &msg, MSG_NOSIGNAL);
+    if (err < 0) {
+        perror("sendmsg");
+        goto fail;
+    }
+    
+    close(tfd);
+    close(sock);
+    
+    return;
+fail:
+    if (tfd >= 0)
+        close(tfd);
+    if (sock >= 0)
+        close(sock);
+        
+    exit(EXIT_FAILURE);
+}
+```
+
+#### receiver
+
+```c
+#include <unistd.h>         /* close(), read() */
+#include <stdlib.h>         /* exit() */
+#include <stdio.h>          /* perror() */
+#include <string.h>         /* stpncpy() */
+#include <sys/timerfd.h>    /* timerfd_create(), timerfd_settime() */
+#include <sys/socket.h>     /* socket(), connect(), bind(), etc. */
+#include <sys/un.h>         /* sockaddr_un */
+#include <time.h>           /* CLOCK_MONOTONIC */
+#include <stdint.h>         /* uint64_t */
+{
+    struct iovec iov;
+    struct msghdr msg;
+    struct cmsghdr *cmsg;
+    struct sockaddr_un addr;
+    char buf[CMSG_SPACE(sizeof(int))];
+    int tfd = -1, sock = -1, count, err;
+    ssize_t n;
+    uint64_t val;
+    
+    sock = socket(AF_UNIX, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        perror("socket");
+        goto fail;
+    }
+    
+    addr.sun_family = AF_UNIX;
+    *stpncpy(addr.sun_path, "/tmp/.unique.sock", sizeof(addr.sun_path)) = '\0';
+    
+    unlink(addr.sun_path);
+    err = bind(sock, (struct sockaddr *) &addr, sizeof(addr));
+    if (err < 0) {
+        perror("bind");
+        goto fail;
+    }
+    
+    iov.iov_base = buf;
+    iov.iov_len = sizeof(buf);
+    
+    msg.msg_iov = &iov;
+    msg.msg_iovlen = 1;
+    msg.msg_control = buf;
+    msg.msg_controllen = sizeof(buf);
+    msg.msg_name = NULL;
+    msg.msg_namelen = 0;
+    
+    err = recvmsg(sock, &msg, MSG_NOSIGNAL);
+    if (err < 0) {
+        perror("recvmsg");
+        goto fail;
+    }
+    
+    tfd = *(int *) CMSG_DATA(CMSG_FIRSTHDR(&msg));
+    
+    count = 1000;
+    
+    while (count > 0) {
+        n = read(tfd, &val, sizeof(val));
+        if (n < 0) {
+            perror("read");
+            goto fail;
+        }
+        
+        count -= val;
+    }
+    
+    close(tfd);
+    close(sock);
+    
+    return;
+fail:
+    if (sock >= 0)
+        close(sock);
+    if (tfd >= 0)
+        close(tfd);
+    
+    exit(EXIT_FAILURE);
+}
+```
+
+### C++ fdcpp easy version
+
+#### sender
+
+```cpp
+#include <iostream>
+#include <fdcpp/easy/fdpass.hpp>
+#include <fdcpp/fds/timerfd.hpp>
+{
+    struct itimerspec its;
+    
+    its.it_value.tv_sec = 0;
+    its.it_value.tv_nsec = 100 * 1e3;
+    its.it_interval.tv_sec = 0;
+    its.it_interval.tv_nsec = 100 * 1e3;
+    
+    try {
+        auto tfd = fd::timerfd();
+        tfd.settime(its);
+        
+        fd::easy::fdpass("/tmp/.unique.sock").send(tfd);
+    } catch (std::system_error &e) {
+        std::cerr << "** ERROR: " << e.what() << '\n';
+    }
+}
+```
+
+#### receiver
+
+```cpp
+#include <iostream>
+#include <fdcpp/easy/fdpass.hpp>
+#include <fdcpp/fds/timerfd.hpp>
+{
+    try {
+        auto v = fd::easy::fdpass("/tmp/.unique.sock").recv();
+        
+        auto tfd = fd::timerfd(std::move(v[0]));
+        
+        int count = 1000;
+        
+        while (count > 0)
+            count -= tfd.read();
+    } catch (std::system_error &e) {
+        std::cerr << "** ERROR: " << e.what() << '\n';
+    }
+}
+```

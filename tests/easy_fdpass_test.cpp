@@ -34,6 +34,7 @@
 #include <fdcpp/easy/mmap.hpp>
 #include <fdcpp/fds/memfd.hpp>
 #include <fdcpp/fds/eventfd.hpp>
+#include <fdcpp/fds/timerfd.hpp>
 
 #include "util/macros.hpp"
 
@@ -155,6 +156,47 @@ void test_static_usage()
     my_fork(&static_recv, &static_send);
 }
 
+void timerfd_send()
+{
+    struct itimerspec its;
+    
+    its.it_value.tv_sec = 0;
+    its.it_value.tv_nsec = 100 * 1e3;
+    its.it_interval.tv_sec = 0;
+    its.it_interval.tv_nsec = 100 * 1e3;
+    
+    try {
+        auto tfd = fd::timerfd();
+        tfd.settime(its);
+        
+        fd::easy::fdpass(path).send(tfd);
+    } catch (std::system_error &e) {
+        std::cerr << "** ERROR: " << e.what() << '\n';
+    }
+}
+
+void timerfd_recv()
+{
+    try {
+        auto v = fd::easy::fdpass(path).recv();
+        
+        ASSERT(v.size() == 1, "exspected only one descriptor");
+        
+        auto tfd = fd::timerfd(std::move(v[0]));
+        int count = 1000;
+        
+        while (count > 0)
+            count -= tfd.read();
+    } catch (std::system_error &e) {
+        std::cerr << "** ERROR: " << e.what() << '\n';
+    }
+}
+
+void test_timerfd()
+{
+    my_fork(&timerfd_recv, &timerfd_send);
+}
+
 int main(int argc, char *argv[])
 {
     (void) argc;
@@ -163,6 +205,7 @@ int main(int argc, char *argv[])
     test_multiple();
     test_single();
     test_static_usage();
+    test_timerfd();
     
     std::cout << "Ok\n";
     

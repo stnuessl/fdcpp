@@ -45,7 +45,7 @@ void ipv4()
     client.send((char *) &msg_out, sizeof(msg_out));
     conn.recv((char *) &msg_in, sizeof(msg_in));
     
-    ASSERT(msg_in == msg_out);
+    ASSERT(msg_in == msg_out, "received wrong message");
 }
 
 void ipv6()
@@ -71,7 +71,7 @@ void ipv6()
     client.send((char *) &msg_out, sizeof(msg_out));
     conn.recv((char *) &msg_in, sizeof(msg_in));
     
-    ASSERT(msg_in == msg_out);
+    ASSERT(msg_in == msg_out, "received wrong message");
 }
 
 int main(int argc, char *argv[])

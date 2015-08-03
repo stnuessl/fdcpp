@@ -22,43 +22,27 @@
  * SOFTWARE.
  */
 
-#ifndef _FDCPP_MMAP_HPP_
-#define _FDCPP_MMAP_HPP_
+#include <iostream>
 
-#include <sys/mman.h>
+#include <fdcpp/fds/file.hpp>
 
-namespace fd {
-
-namespace easy {
-
-class mmap {
-public:
-    mmap(size_t len, int prot, int flags, int fd, off_t off = 0);
-    mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off = 0);
-    mmap(const mmap &other) = delete;
-    mmap(mmap &&other);
+int main(int argc, char *argv[])
+{
+    (void) argc;
+    (void) argv;
     
-    ~mmap();
+    unsigned int rand[100];
     
-    mmap &operator=(const mmap &other) = delete;
-    mmap &operator=(mmap &&other);
+    auto file = fd::file("/dev/urandom", O_RDONLY);
     
-    char &operator[](size_t i);
-    const char &operator[](size_t i) const;
+    file.read((char *) rand, sizeof(rand));
     
-    char *operator+(size_t i);
-    const char *operator+(size_t i) const;
+    std::cout << "Here are some random numbers:\n";
     
-    operator char *();
-    operator const char *() const;
+    for (auto &x : rand)
+        std::cout << x << " ";
     
-    size_t size() const;
-private:
-    char *_addr;
-    size_t _size;
-};
-
+    std::cout << '\n';
+    
+    return 0;
 }
-}
-
-#endif /* _FDCPP_MMAP_HPP_ */

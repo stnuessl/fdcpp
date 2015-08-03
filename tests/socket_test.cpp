@@ -53,7 +53,7 @@ void server_thread()
     
     conn.recv(recv_buf, sizeof(recv_buf));
     
-    ASSERT(strcmp(recv_buf, HELLO_WORLD) == 0);
+    ASSERT(strcmp(recv_buf, HELLO_WORLD) == 0, "received wrong message");
     
     conn.send(recv_buf, sizeof(recv_buf));
 }
@@ -77,7 +77,7 @@ void client_thread()
     
     client.read(recv_buf, sizeof(recv_buf));
     
-    ASSERT(strcmp(recv_buf, HELLO_WORLD) == 0);
+    ASSERT(strcmp(recv_buf, HELLO_WORLD) == 0, "received wrong message");
 }
 
 void test_unix_domain_socket()
@@ -109,7 +109,7 @@ void test_udp_socket()
     
     server.recvfrom(buffer_in, size);
     
-    ASSERT(strcmp(buffer_in, buffer_out) == 0);
+    ASSERT(strcmp(buffer_in, buffer_out) == 0, "received wrong message");
 }
 
 void test_tcp_socket()

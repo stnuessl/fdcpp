@@ -31,6 +31,7 @@
 
 #include <fdcpp/easy/fdpass.hpp>
 #include <fdcpp/easy/unix_socket.hpp>
+#include <fdcpp/easy/mmap.hpp>
 #include <fdcpp/fds/memfd.hpp>
 #include <fdcpp/fds/eventfd.hpp>
 
@@ -89,17 +90,30 @@ void receiver_multiple()
 
 void receiver_single()
 {
+    struct stat st;
     auto v = fd::easy::fdpass(path).recv();
     
     ASSERT(v.size() == 1, "exspected only one descriptor");
+    
+    auto memfd = fd::memfd(std::move(v[0]));
+    memfd.fstat(st);
+    
+    auto mmap = fd::easy::mmap(st.st_size, PROT_READ, MAP_SHARED, memfd);
+    
+    ASSERT(strcmp(mmap, "Hello, World!") == 0, "invalid mmap content");
 }
 
 void sender_single()
 {
+    size_t size = 128;
     auto memfd = fd::memfd("easy_fdpass_test");
-    memfd.ftruncate(128);
+    memfd.ftruncate(size);
     
-    usleep(100 * 1000);   
+    auto mmap = fd::easy::mmap(size, PROT_WRITE, MAP_SHARED, memfd);
+    
+    strncpy(mmap, "Hello, World!", mmap.size());
+    
+    usleep(100 * 1000);
     fd::easy::fdpass(path).send(memfd);
 }
 

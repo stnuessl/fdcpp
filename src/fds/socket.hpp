@@ -38,7 +38,7 @@ namespace fd {
 
 class socket : public iodescriptor {
 public:    
-    explicit socket(int domain, int type, int protocol = 0);
+    socket(int domain, int type, int protocol = 0);
     explicit socket(descriptor &&other);
     socket(socket &&other) = default;
     

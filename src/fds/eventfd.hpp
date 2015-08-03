@@ -35,7 +35,7 @@ namespace fd {
 class eventfd : public iodescriptor {
 public:
     
-    explicit eventfd(unsigned int initval = 0, int flags = 0);
+    eventfd(unsigned int initval = 0, int flags = 0);
     explicit eventfd(descriptor &&other);
     eventfd(eventfd &&other) = default;
     

@@ -35,10 +35,10 @@ namespace fd {
 
 class file : public iodescriptor {
 public:
-    explicit file(const char *path, int flags = 0);
-    explicit file(const char *path, int flags, mode_t mode);
-    explicit file(const std::string &path, int flags = 0);
-    explicit file(const std::string &path, int flags, mode_t mode);
+    file(const char *path, int flags = 0);
+    file(const char *path, int flags, mode_t mode);
+    file(const std::string &path, int flags = 0);
+    file(const std::string &path, int flags, mode_t mode);
     explicit file(descriptor &&other);
     file(file &&other) = default;
     

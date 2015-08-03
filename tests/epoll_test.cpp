@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
             } else if (events[i].data.fd == sfd) {
                 struct signalfd_siginfo info;
                 
-                sfd.read(&info);
+                sfd.read(info);
                 
                 std::cout << "**SIGNALFD: received " 
                           << strsignal(info.ssi_signo) << '\n';

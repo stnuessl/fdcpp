@@ -44,21 +44,28 @@ fdpass::fdpass(const std::string &path)
 {
 }
 
+void fdpass::send(const socket &sock, const std::initializer_list<int> &list)
+{
+    fdpass::send(sock, list.begin(), list.end());
+}
+
+
+void fdpass::send(const std::initializer_list<int> &list)
+{
+    send(list.begin(), list.end());
+}
+
 void fdpass::send(const socket &sock, const descriptor &fd)
 {
-    std::vector<int> v = { fd };
-    
-    fdpass::send(sock, v.begin(), v.end());
+    fdpass::send(sock, { fd });
 }
 
 void fdpass::send(const descriptor &fd)
 {
-    std::vector<int> v = { fd };
-
-    send(v.begin(), v.end());
+    send({ fd });
 }
 
-std::vector< descriptor > fdpass::recv(const socket &sock)
+std::vector<descriptor> fdpass::recv(const socket &sock)
 {
     std::vector<descriptor> v;
     struct msghdr msg;

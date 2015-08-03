@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     
     while (1) {
         try {
-            sfd.read(&info);
+            sfd.read(info);
             
             std::cout << "Signal: " << strsignal(info.ssi_signo) << '\n';
         } catch (std::system_error &e) {

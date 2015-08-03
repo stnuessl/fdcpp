@@ -81,20 +81,14 @@ void signalfd::dup2(const signalfd &other) const
     *this = other;
 }
 
-void signalfd::read(struct signalfd_siginfo *info) const
+void signalfd::read(struct signalfd_siginfo &info) const
 {
-    size_t sum;
-    ssize_t n;
-    
-    sum = 0;
+    size_t n = 0;
     
     do {
-        n = ::read(_fd, (char *) info + sum, sizeof(*info) - sum);
-        if (n < 0)
-            throw_system_error(tag, "read()");
-        
-        sum += n;
-    } while (sum != sizeof(*info));
+        n += idescriptor::read((char *) &info + n, sizeof(info) - n);
+    } while (n != sizeof(info));
+
 }
 
 

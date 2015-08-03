@@ -34,7 +34,7 @@ namespace fd {
 
 class signalfd : public idescriptor {
 public:
-    explicit signalfd(const sigset_t &mask, int flags = 0);
+    signalfd(const sigset_t &mask, int flags = 0);
     explicit signalfd(descriptor &&other);
     signalfd(signalfd &&other) = default;
     
@@ -46,7 +46,7 @@ public:
     signalfd dup() const;
     void dup2(const signalfd &other) const;
     
-    void read(struct signalfd_siginfo *info) const;
+    void read(struct signalfd_siginfo &info) const;
 private:
     signalfd(const signalfd &other);
     const signalfd &operator=(const signalfd &other) const;

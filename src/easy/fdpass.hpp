@@ -25,6 +25,7 @@
 #ifndef _FDCPP_FDPASS_HPP_
 #define _FDCPP_FDPASS_HPP_
 
+#include <initializer_list>
 #include <string>
 #include <vector>
 
@@ -46,9 +47,12 @@ public:
     
     template<typename iter> 
     static void send(const socket &sock, iter begin, iter end);
-    template<typename iter> void send(iter begin, iter end);
-    
+    static void send(const socket &sock, 
+                     const std::initializer_list<int> &list);
     static void send(const socket &sock, const descriptor &fd);
+    
+    template<typename iter> void send(iter begin, iter end);
+    void send(const std::initializer_list<int> &list);
     void send(const descriptor &fd);
     
     static std::vector<descriptor> recv(const socket &sock);

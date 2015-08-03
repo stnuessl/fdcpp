@@ -35,8 +35,8 @@ namespace fd {
 
 class memfd : public iodescriptor {
 public:
-    explicit memfd(const char *name, int flags = 0);
-    explicit memfd(const std::string &name, int flags = 0);
+    memfd(const char *name, int flags = 0);
+    memfd(const std::string &name, int flags = 0);
     explicit memfd(descriptor &&other);
     memfd(memfd &&other) = default;
     

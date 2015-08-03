@@ -38,7 +38,7 @@ public:
         STOPPED
     };
     
-    explicit timer();
+    timer();
     explicit timer(const struct itimerspec &its);
     timer(const timer &other) = delete;
     timer(timer &&other);

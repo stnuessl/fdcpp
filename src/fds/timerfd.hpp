@@ -37,7 +37,7 @@ namespace fd {
 
 class timerfd : public idescriptor {
 public:
-    explicit timerfd(clockid_t clockid = CLOCK_MONOTONIC, int flags = 0);
+    timerfd(clockid_t clockid = CLOCK_MONOTONIC, int flags = 0);
     explicit timerfd(descriptor &&other);
     timerfd(timerfd &&other) = default;
     

@@ -5,7 +5,7 @@ project(tests)
 
 find_package(Threads)
 
-set(CMAKE_LIBRARY_PATH, /usr/local/lib)
+set(CMAKE_LIBRARY_PATH /usr/local/lib)
 set(LIBS fdcpp)
 set(TARGETS
     epoll_test

@@ -93,7 +93,7 @@ void fdpass::send(const socket &sock, iter begin, iter end)
     
     while (begin != end) {
         auto dist = std::abs(std::distance(begin, end));
-        auto batch_size = std::min(dist, MAX_BATCH_SIZE);
+        auto batch_size = std::min(static_cast<long>(dist), MAX_BATCH_SIZE);
         auto bytes = batch_size * sizeof(int);
         
         msg.msg_controllen = CMSG_SPACE(bytes);
